@@ -144,14 +144,15 @@ class Compiler(Visitor):
         self.sequence: list[str] = []
     
     def visit_statement_post(self, statement: Statement):
+        # Other statement that can be inlined are automatically
+        # handled in each statement's compilation
+        
         if statement == self.root:
             self.sequence.append(statement.compile(self.variables))
         elif not self.deps[statement].can_inline:
             name_to = self.variables.add_statement(statement)
             compiled = statement.compile(self.variables, name_to)
             self.sequence.append(compiled)
-        # Other statement that can be inlined are automatically
-        # handled in each statement's compilation
 
 
 def traverse_statement(statement: Statement, visitor: Visitor, visited: set[Statement] | None = None):
