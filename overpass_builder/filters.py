@@ -204,8 +204,6 @@ class IntersectsWith(Filter):
             raise RuntimeError("Empty intersection.")
         names: list[str] = []
         for stmt in self.statements:
-            if not vars.is_named(stmt):
-                raise RuntimeError("All statements used in an intersection must be stored in variables.")
             names.append(vars[stmt])
         return "." + ".".join(names)
     

@@ -23,5 +23,5 @@ def test_requires_variable():
     vars = VariableManager()
     vars.add_statement(a)
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(KeyError):
         IntersectsWith(a, b).compile(vars)
