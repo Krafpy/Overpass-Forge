@@ -52,13 +52,7 @@ class Dependency:
     
     @property
     def can_inline(self):
-        if self.no_inline:
-            return False
-        if self.ref_count > 1:
-            return False
-        if self.statement.out_options is not None:
-            return False
-        return True
+        return not self.no_inline and self.ref_count <= 1 and self.statement.out_options is None
 
 class DependencyRetriever(Visitor):
     """
@@ -146,7 +140,7 @@ class Compiler(Visitor):
     def visit_statement_post(self, statement: Statement):
         # Other statement that can be inlined are automatically
         # handled in each statement's compilation
-        
+
         if statement == self.root:
             self.sequence.append(statement.compile(self.variables))
         elif not self.deps[statement].can_inline:
