@@ -4,6 +4,7 @@ from .variables import VariableManager
 from .base import QueryStatement
 from .utils import partition
 from .filters import Filter, IntersectsWith
+from dataclasses import dataclass
 
 
 class Visitor:
@@ -32,41 +33,53 @@ class CycleDetectionVisitor(Visitor):
         self.visiting[statement] = False
 
 
-class ReferencesCountVisitor(Visitor):
+@dataclass
+class Dependency:
+    statement: Statement
+    ref_count: int = 1
+    no_inline: bool = False
+    
+    @property
+    def can_inline(self):
+        if self.no_inline:
+            return False
+        if self.ref_count > 1:
+            return False
+        if self.statement.out_options is not None:
+            return False
+        return True
+
+class DependencyRetrievalVisitor(Visitor):
     def __init__(self) -> None:
         super().__init__()
-        self.refs: dict[Statement, int] = {}
+        self.deps: dict[Statement, Dependency] = {}
     
-    def visit_statement_pre(self, statement: Statement):
-        if statement not in self.refs:
-            self.refs[statement] = 1
+    def _add_or_increment(self, statement, *args):
+        if statement not in self.deps:
+            self.deps[statement] = Dependency(statement, *args)
         else:
-            self.refs[statement] += 1
-
-
-class FindFilterDependenciesVisitor(Visitor):
-    def __init__(self) -> None:
-        super().__init__()
-        self.depended_by_filter: set[Statement] = set()
+            self.deps[statement].ref_count += 1
     
     def visit_statement_pre(self, statement: Statement):
+        self._add_or_increment(statement)
         if not isinstance(statement, QueryStatement):
             return
         for f in statement.filters:
-            self.depended_by_filter.update(f.dependencies)
+            for substmt in f.dependencies:
+                self._add_or_increment(substmt, 0, True)
 
 
 class SimplifyDependeciesVisitor(Visitor):
-    def __init__(self, refs: dict[Statement, int]) -> None:
+    def __init__(self, deps: dict[Statement, Dependency]) -> None:
         super().__init__()
-        self.refs = refs
+        self.deps = deps
 
     def visit_statement_post(self, statement: Statement):
         if not isinstance(statement, QueryStatement):
             return
         
         new_filters: list[Filter] = []
-        is_single = lambda stmt: self.refs[stmt] == 1
+        is_single = lambda stmt: self.deps[stmt].ref_count == 1
 
         for filt in statement.filters:
             if not isinstance(filt, IntersectsWith):
@@ -87,24 +100,19 @@ class SimplifyDependeciesVisitor(Visitor):
 
 
 class CompilationVisitor(Visitor):
-    def __init__(self, refs: dict[Statement, int], root: Statement, depended_by_filters: set[Statement]) -> None:
+    def __init__(self, root: Statement, deps: dict[Statement, Dependency]) -> None:
         super().__init__()
 
-        self.variables = VariableManager()
         self.root = root
-        self.depended_by_filters = depended_by_filters
+        self.deps = deps
+        self.variables = VariableManager()
         self.sequence: list[str] = []
-        self.refs = refs
     
     def visit_statement_post(self, statement: Statement):
-        to_var = self.refs[statement] > 1 or \
-                    statement.out_options is not None or \
-                    statement in self.depended_by_filters
-        
         if statement == self.root:
             self.sequence.append(statement.compile(self.variables))
             self._try_append_out(statement)
-        elif to_var:
+        elif not self.deps[statement].can_inline:
             name_to = self.variables.add_statement(statement)
             compiled = statement.compile(self.variables, name_to)
             self.sequence.append(compiled)

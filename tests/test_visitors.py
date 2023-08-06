@@ -1,5 +1,5 @@
 from overpass_builder.statements import Nodes, Union, Difference
-from overpass_builder.visitors import CycleDetectionVisitor, CircularDependencyError, ReferencesCountVisitor, traverse_statement
+from overpass_builder.visitors import CycleDetectionVisitor, CircularDependencyError, DependencyRetrievalVisitor, traverse_statement
 import pytest
 
 def test_no_cycles():
@@ -67,18 +67,18 @@ def test_reference_count():
     b = Nodes()
     c = Union(a, b)
     d = Union(a, b, c)
-    counter = ReferencesCountVisitor()
+    counter = DependencyRetrievalVisitor()
     traverse_statement(d, counter)
 
-    assert counter.refs[a] == 2
-    assert counter.refs[b] == 2
-    assert counter.refs[c] == 1
-    assert counter.refs[d] == 1
+    assert counter.deps[a].ref_count == 2
+    assert counter.deps[b].ref_count == 2
+    assert counter.deps[c].ref_count == 1
+    assert counter.deps[d].ref_count == 1
 
 def test_complex_reference_count():
     a = Nodes()
     b = Nodes()
-    c = Nodes()
+    c = Nodes().intersection(a)
     d = Nodes()
     e = Nodes()
     f = Nodes()
@@ -92,15 +92,13 @@ def test_complex_reference_count():
 
     u2.elements.append(u3)
     u4.elements.append(u1)
-    u4.elements.append(u2)
-    u4.elements.append(u3)
 
-    counter = ReferencesCountVisitor()
+    counter = DependencyRetrievalVisitor()
     traverse_statement(u5, counter)
 
-    assert counter.refs[a] == 1
-    assert counter.refs[d] == 1
-    assert counter.refs[g] == 2
-    assert counter.refs[u2] == 3
-    assert counter.refs[u4] == 1
-    assert counter.refs[u5] == 1
+    assert counter.deps[a].ref_count == 2
+    assert counter.deps[d].ref_count == 1
+    assert counter.deps[g].ref_count == 2
+    assert counter.deps[u2].ref_count == 2
+    assert counter.deps[u4].ref_count == 1
+    assert counter.deps[u5].ref_count == 1
