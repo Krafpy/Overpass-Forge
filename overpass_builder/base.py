@@ -83,7 +83,7 @@ class Statement:
         """
         visitor.visit_statement_post(self)
 
-    def compile(self, vars: VariableManager, out_var: str | None = None) -> str:
+    def _compile(self, vars: VariableManager, out_var: str | None = None) -> str:
         """
         Compiles the statement into its Overpass query string.
         """
@@ -142,6 +142,17 @@ class Statement:
         
         self.out_options = valid_options
         return self
+    
+    def compile(self, vars: VariableManager, out_var: str | None = None) -> str:
+        compiled = self._compile(vars, out_var)
+        if self.out_options is None:
+            return compiled
+        var = vars.get(self)
+        opts = self.out_options
+        out = f".{var} out" if var is not None else "out"
+        out += (" " + " ".join(sorted(opts))) if len(opts) > 0 else ""
+        out += ";"
+        return compiled + "\n" + out
     
     def __repr__(self) -> str:
         info = self.label if self.label else id(self)
@@ -269,7 +280,7 @@ class QueryStatement(Statement):
             deps.extend(filt.dependencies)
         return deps
     
-    def compile(self, vars: VariableManager, out_var: str | None = None) -> str:
+    def _compile(self, vars: VariableManager, out_var: str | None = None) -> str:
         comp_filter = lambda f: f.compile(vars)
         res = self._type_specifier + "".join(map(comp_filter, self.filters))
         if out_var is not None:

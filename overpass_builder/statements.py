@@ -27,7 +27,7 @@ class Union(BlockStatement):
     def dependencies(self) -> list[Statement]:
         return [*self.elements]
     
-    def compile(self, vars: VariableManager, out_var: str | None = None) -> str:
+    def _compile(self, vars: VariableManager, out_var: str | None = None) -> str:
         substmts = []
         for stmt in self.elements:
             substmts.append(vars.get_or_compile(stmt, ".{};"))
@@ -46,7 +46,7 @@ class Difference(BlockStatement):
     def dependencies(self) -> list[Statement]:
         return [self.a, self.b]
     
-    def compile(self, vars: VariableManager, out_var: str | None = None) -> str:
+    def _compile(self, vars: VariableManager, out_var: str | None = None) -> str:
         a = vars.get_or_compile(self.a, ".{};")
         b = vars.get_or_compile(self.b, ".{};")
         if out_var is None:

@@ -146,22 +146,10 @@ class Compiler(Visitor):
     def visit_statement_post(self, statement: Statement):
         if statement == self.root:
             self.sequence.append(statement.compile(self.variables))
-            self._try_append_out(statement)
         elif not self.deps[statement].can_inline:
             name_to = self.variables.add_statement(statement)
             compiled = statement.compile(self.variables, name_to)
             self.sequence.append(compiled)
-
-            self._try_append_out(statement)
-    
-    def _try_append_out(self, stmt: Statement):
-        if stmt.out_options is None:
-            return
-        options = stmt.out_options
-        var = self.variables.get(stmt)
-        out = f".{var} out" if var is not None else "out"
-        out += (" " + " ".join(sorted(options))) if len(options) > 0 else ""
-        self.sequence.append(out + ";")
 
 
 def traverse_statement(statement: Statement, visitor: Visitor, visited: set[Statement] | None = None):
