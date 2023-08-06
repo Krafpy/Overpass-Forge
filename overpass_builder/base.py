@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 OUT_OPTIONS = ("ids", "skel", "body", "tags", "meta", "noids", "geom", "bb", "center", "asc", "qt", "count")
 
-DATE_FORMAT = "%Y-%d-%mT%H:%M:%SZ"
+DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 
 class Statement:
