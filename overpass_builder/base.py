@@ -63,9 +63,6 @@ class Statement:
         self._dependencies = dependencies
         if "{}" in raw:
             raise ValueError("All inserted dependencies must be named.")
-        for name in dependencies.keys():
-            if "{" + name + "}" not in raw:
-                raise ValueError(f"Unused dependency {name}.")
         
         self.out_options: set[str] | None = None
         self.label: str | None = None
