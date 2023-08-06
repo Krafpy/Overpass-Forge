@@ -56,6 +56,9 @@ def test_chained_filters():
     d = c.where(tourism="yes")
     assert build(d) == """node["amenity"="bar"]["parking"="yes"]["tourism"="yes"];"""
 
+def test_simple_raw_statement():
+    assert build(Statement("something")) == "something"
+
 def test_raw_statement():
     a = Nodes().where(amenity="bar")
     b = Nodes(input_set=a).where(tourism="yes")
@@ -64,3 +67,12 @@ def test_raw_statement():
         """node["amenity"="bar"]->.set_0;\n""" \
         """node.set_0["tourism"="yes"]->.set_1;\n""" \
         """(.set_1; - .set_0;) -> .items;"""
+
+def test_dependent_raw_statements():
+    a = Statement("node[\"tourism\"=\"hotel\"] -> .{:out_var};")
+    b = Statement("node[\"amenity\"=\"bar\"] -> .{:out_var};")
+    c = Statement("(.{x}; - .{y};);", x=a, y=b)
+    assert build(c) == \
+        "node[\"tourism\"=\"hotel\"] -> .set_0;\n" \
+        "node[\"amenity\"=\"bar\"] -> .set_1;\n" \
+        "(.set_0; - .set_1;);"

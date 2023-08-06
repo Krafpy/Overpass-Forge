@@ -49,15 +49,17 @@ class Statement:
         """
         Compiles the statement.
         """
-        if out_var is not None:
-            raise RuntimeError("Base statement cannot output to variables.")
-        
         var_names: dict[str, str] = {}
         for name, stmt in self._dependencies.items():
             if not vars.is_named(stmt):
                 raise RuntimeError("All inserted sets must use variables.")
             var_names[name] = vars[stmt]
-        return self._raw.format(**var_names)
+        compiled = self._raw
+        if "{:out_var}" in self._raw:
+            compiled = compiled.replace("{:out_var}", out_var or "._")
+        elif out_var is not None:
+            raise RuntimeError("No output variable specified.")
+        return compiled.format(**var_names)
     
     @property
     def dependencies(self) -> list[Statement]:
