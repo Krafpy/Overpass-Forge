@@ -51,7 +51,7 @@ List of currently implemented features, based on the [Overpass QL wiki](https://
   - [x] By input set (*.setname*)
   - [x] By element id
   - [x] Relative to other elements (*around*)
-  - [ ] By polygon (*poly*)
+  - [x] By polygon (*poly*)
   - [x] *newer*
   - [x] By date of change (*changed*)
   - [x] By user (*user, uid*)
