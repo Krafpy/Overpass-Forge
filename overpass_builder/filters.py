@@ -32,6 +32,9 @@ class Filter:
 
 
 class Tag(Filter):
+    """
+    Represents a generic tag filter (has/exists kv).
+    """
     def __init__(self, case_sensitive=True) -> None:
         super().__init__()
         self.case_sensitive = case_sensitive
@@ -55,6 +58,9 @@ class InvalidRegexError(Exception):
 
 
 class KeyExists(Tag):
+    """
+    Filter ["key"]
+    """
     def __init__(self, key: str, case_sensitive=True) -> None:
         super().__init__(case_sensitive)
         self.key = key
@@ -63,6 +69,9 @@ class KeyExists(Tag):
         return f"\"{self.key}\""
 
 class KeyNotExists(Tag):
+    """
+    Filter [!"key"]
+    """
     def __init__(self, key: str, case_sensitive=True) -> None:
         super().__init__(case_sensitive)
         self.key = key
@@ -71,6 +80,9 @@ class KeyNotExists(Tag):
         return f"!\"{self.key}\""
 
 class KeyEqualsValue(Tag):
+    """
+    Filter ["key"="value"]
+    """
     def __init__(self, key: str, value: str, case_sensitive=True) -> None:
         super().__init__(case_sensitive)
         self.key = key
@@ -80,6 +92,9 @@ class KeyEqualsValue(Tag):
         return f"\"{self.key}\"=\"{self.value}\""
 
 class KeyNotEqualsValue(Tag):
+    """
+    Filter ["key"!="value"]
+    """
     def __init__(self, key: str, value: str, case_sensitive=True) -> None:
         super().__init__(case_sensitive)
         self.key = key
@@ -89,6 +104,9 @@ class KeyNotEqualsValue(Tag):
         return f"\"{self.key}\"!=\"{self.value}\""
 
 class ValueMatchesExpr(Tag):
+    """
+    Filter ["key"~"value_pattern"]
+    """
     def __init__(self, key: str, pattern: str, check_pattern_on_compile=True, case_sensitive=True) -> None:
         super().__init__(case_sensitive)
         self.key = key
@@ -104,6 +122,9 @@ class ValueMatchesExpr(Tag):
         return f"\"{self.key}\"~\"{self.pattern}\""
 
 class ValueNotMatchesExpr(Tag):
+    """
+    Filter ["key"!~"value_pattern"]
+    """
     def __init__(self, key: str, pattern: str, check_pattern_on_compile=True, case_sensitive=True) -> None:
         super().__init__(case_sensitive)
         self.key = key
@@ -119,6 +140,9 @@ class ValueNotMatchesExpr(Tag):
         return f"\"{self.key}\"!~\"{self.pattern}\""
 
 class KeyValueMatchExprs(Tag):
+    """
+    Filter [~"key_pattern"~"value_pattern"]
+    """
     def __init__(self, key_pattern: str, value_pattern: str, check_pattern_on_compile=True, case_sensitive=True) -> None:
         super().__init__(case_sensitive)
         self.key_pattern = key_pattern
@@ -171,7 +195,7 @@ class Ids(Filter):
     def __init__(self, *ids: int) -> None:
         """
         Args:
-            ids (int): the list of OSM ids in the filter
+            ids (int): the list of OSM ids to filter
         """
         super().__init__()
         
@@ -191,6 +215,9 @@ class Ids(Filter):
 
 
 class IntersectsWith(Filter):
+    """
+    Intersection with other sets.
+    """
     def __init__(self, *elements: Statement) -> None:
         super().__init__()
         self.statements = list(elements)
@@ -212,6 +239,9 @@ class IntersectsWith(Filter):
 
 
 class Newer(Filter):
+    """
+    Filter by newer change dates.
+    """
     def __init__(self, date: datetime):
         self.date = date
     
