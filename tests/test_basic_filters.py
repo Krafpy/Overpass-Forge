@@ -1,4 +1,4 @@
-from overpass_builder.filters import BoundingBox, Newer, Changed, User, Area, Pivot
+from overpass_builder.filters import BoundingBox, Newer, Changed, User, Area, Pivot, Polygon
 from overpass_builder.statements import Areas
 from overpass_builder.variables import VariableManager
 from datetime import datetime
@@ -36,3 +36,7 @@ def test_pivot_filter():
     vars = VariableManager()
     name = vars.add_statement(a)
     assert Pivot(a).compile(vars) == f"(pivot.{name})"
+
+def test_polygon_filter(no_vars):
+    p = Polygon([50.7,50.7,50.75], [7.1,7.2,7.15])
+    assert p.compile(no_vars) == "(poly:\"50.7 7.1 50.7 7.2 50.75 7.15\")"

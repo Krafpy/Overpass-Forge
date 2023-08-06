@@ -329,3 +329,23 @@ class Around(Filter):
             return f"(around:{self.radius},{','.join(latlons)})"
         
         raise AttributeError("Input set or coordinates not defined.")
+
+class Polygon(Filter):
+    """
+    Filters all elements that are inside the defined polygon.
+    """
+    def __init__(self, lats: Iterable[float], lons: Iterable[float]) -> None:
+        """
+        Args:
+            lats, lons: the latitudes and longitudes of the points describing the polygon.
+        """
+        super().__init__()
+        self.lats = lats
+        self.lons = lons
+    
+    def compile(self, vars: VariableManager) -> str:
+        latlons = []
+        for lat, lon in zip(self.lats, self.lons):
+            latlons.append(str(lat))
+            latlons.append(str(lon))
+        return f"(poly:\"{' '.join(latlons)}\")"
