@@ -245,6 +245,12 @@ class QueryStatement(Statement):
         """
         return self.__class__(filters=[IntersectsWith(self), User(*users)])
     
+    def outlines_of(self, area: 'Areas') -> QueryStatement:
+        """
+        Filters the elements that are part of the outline of the given area.
+        """
+        return self.__class__(filters=[IntersectsWith(self), PivotFilter(area)])
+    
     def around(self,
         radius: float,
         other: Statement | None,
@@ -255,7 +261,8 @@ class QueryStatement(Statement):
         Filters elements that are within a given radius of the elements of another set
         or a list of given coordinates (cannot specify both).
         """
-        return self.__class__(filters=[IntersectsWith(self), Around(radius, other, lats, lons)])
+        around = Around(radius, other, lats, lons)
+        return self.__class__(filters=[IntersectsWith(self), around])
 
     @property
     def dependencies(self) -> list[Statement]:
