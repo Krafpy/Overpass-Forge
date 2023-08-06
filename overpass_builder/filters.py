@@ -1,6 +1,6 @@
 from __future__ import annotations
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable
 from datetime import datetime
 from .variables import VariableManager
 from .utils import partition
@@ -326,3 +326,52 @@ class PivotFilter(Filter):
     
     def compile(self, vars: VariableManager) -> str:
         return f"(pivot.{vars[self.input_area]})"
+
+
+class Around(Filter):
+    """
+    Filters elements within a certain radius around elements in the
+    input set.
+    """
+    def __init__(
+        self,
+        radius: float,
+        input_set: Statement | None = None,
+        lats: Iterable[float] | None = None,
+        lons: Iterable[float] | None = None,
+    ):
+        """
+        Creates an around filter.
+
+        Args:
+            radius (float): the radius in meters around each elements
+            input_set (Statement): the input set of elements around which to filter
+            (cannot be used in combination with lats, lons)
+            lats, lons: latitude and longitudes of points around which to filter
+            (cannot be used in combination with input_set)
+        """
+        self.radius = radius
+        self.input_set = input_set
+        self.lats = lats
+        self.lons = lons
+    
+    @property
+    def dependencies(self) -> list[Statement]:
+        if self.input_set is None:
+            return []
+        return [self.input_set]
+    
+    def compile(self, vars: VariableManager) -> str:
+        if self.input_set is not None and (self.lats is not None or self.lons is not None):
+            raise AttributeError("Cannot use both coordinates and input set.")
+        
+        if self.input_set is not None:
+            return f"(around.{vars[self.input_set]}:{self.radius})"
+        if self.lats is not None and self.lons is not None:
+            latlons = []
+            for lat, lon in zip(self.lats, self.lons):
+                latlons.append(str(lat))
+                latlons.append(str(lon))
+            return f"(around:{self.radius},{','.join(latlons)})"
+        
+        raise AttributeError("Input set or coordinates not defined.")

@@ -50,7 +50,7 @@ List of currently implemented features, based on the [Overpass QL wiki](https://
   - [ ] Recurse (way_cnt, way_link)
   - [x] By input set (*.setname*)
   - [x] By element id
-  - [ ] Relative to other elements (*around*)
+  - [x] Relative to other elements (*around*)
   - [ ] By polygon (*poly*)
   - [x] *newer*
   - [x] By date of change (*changed*)
