@@ -53,8 +53,8 @@ List of currently implemented features, based on the [Overpass QL wiki](https://
   - [ ] Relative to other elements (*around*)
   - [ ] By polygon (*poly*)
   - [x] *newer*
-  - [ ] By date of change (*changed*)
-  - [ ] By user (*user, uid*)
+  - [x] By date of change (*changed*)
+  - [x] By user (*user, uid*)
   - [ ] By area (*area*)
   - [ ] Area pivot (*pivot*)
   - [ ] Conditional query filter (*if:*)
