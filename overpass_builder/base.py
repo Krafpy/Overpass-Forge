@@ -216,7 +216,7 @@ class QueryStatement(Statement):
             filters.append(K(key) == V(value))
         return self.__class__(filters=filters)
     
-    def inside(self, area: tuple[float,float,float,float] | BoundingBox | 'Areas' | Polygon) -> QueryStatement:
+    def inside(self, area: tuple[float,float,float,float] | BoundingBox | Polygon | Area | 'Areas') -> QueryStatement:
         """
         Filters the elements that are in the specified area.
         """
