@@ -127,6 +127,9 @@ class QueryStatement(Statement):
 
         self.filters = list(filters)
 
+        if isinstance(input_set, Statement):
+            self.filters.append(IntersectsWith(input_set))
+
         if isinstance(ids, Ids):
             self.filters.append(ids)
         elif isinstance(ids, int):
@@ -138,9 +141,6 @@ class QueryStatement(Statement):
             self.filters.append(bounding_box)
         elif isinstance(bounding_box, tuple):
             self.filters.append(BoundingBox(*bounding_box))
-        
-        if isinstance(input_set, Statement):
-            self.filters.append(IntersectsWith(input_set))
     
     def filter(self, *args: Filter) -> QueryStatement:
         """
