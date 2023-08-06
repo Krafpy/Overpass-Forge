@@ -1,9 +1,9 @@
 from __future__ import annotations
 import re
-from typing import Iterable, TYPE_CHECKING
+from typing import TYPE_CHECKING
 from datetime import datetime
-
 from .variables import VariableManager
+from .utils import partition
 
 if TYPE_CHECKING:
     from .base import Statement
@@ -247,7 +247,51 @@ class Newer(Filter):
     
     def compile(self, vars: VariableManager) -> str:
         from .base import DATE_FORMAT
-        return f"(newer:{self.date.strftime(DATE_FORMAT)})"
+        return f"(newer:\"{self.date.strftime(DATE_FORMAT)}\")"
     
     def __repr__(self) -> str:
         return f"<Newer {self.date}>"
+
+class Changed(Filter):
+    """
+    Filter that selects elements that have been changed between two given
+    dates. If only the lower date is given, the second is assumed to be the
+    front date of the database.
+    """
+    def __init__(self, lower: datetime, higher: datetime | None = None):
+        self.lower = lower
+        self.higher = higher
+    
+    def compile(self, vars: VariableManager) -> str:
+        from .base import DATE_FORMAT
+        if self.higher is None:
+            return f"(changed:\"{self.lower.strftime(DATE_FORMAT)}\")"
+        return f"(changed:\"{self.lower.strftime(DATE_FORMAT)}\",\"{self.higher.strftime(DATE_FORMAT)}\")"
+    
+    def __repr__(self) -> str:
+        return f"<Changed {self.lower} - {self.higher}>"
+
+class User(Filter):
+    """
+    Filter the elements last edited by the specified users.
+    """
+    def __init__(self, *users: int | str) -> None:
+        """
+        Args:
+            *users: a list of user names or user ids.
+        """
+        if len(users) == 0:
+            raise ValueError("Must list at least one user.")
+        self.users = users
+
+    def compile(self, vars: VariableManager) -> str:
+        ids, names = partition(lambda x: isinstance(x, int), self.users)
+        ids = list(map(str, ids))
+        names = list(map(lambda x: f"\"{x}\"", names))
+        
+        compiled = ""
+        if len(ids) > 0:
+            compiled += f"(uid:{','.join(ids)})"
+        if len(names) > 0:
+            compiled += f"(user:{','.join(names)})"
+        return compiled
