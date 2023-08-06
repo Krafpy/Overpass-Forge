@@ -1,4 +1,4 @@
-from overpass_builder.filters import BoundingBox, Newer, Changed, User, InArea, Pivot
+from overpass_builder.filters import BoundingBox, Newer, Changed, User, Area, Pivot
 from overpass_builder.statements import Areas
 from overpass_builder.variables import VariableManager
 from datetime import datetime
@@ -29,7 +29,7 @@ def test_area_filter():
     a = Areas()
     vars = VariableManager()
     name = vars.add_statement(a)
-    assert InArea(a).compile(vars) == f"(area.{name})"
+    assert Area(a).compile(vars) == f"(area.{name})"
 
 def test_pivot_filter():
     a = Areas()

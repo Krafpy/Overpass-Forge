@@ -215,7 +215,7 @@ class Ids(Filter):
         return f"<Ids ({self.ids})>"
 
 
-class IntersectsWith(Filter):
+class Intersection(Filter):
     """
     Intersection with other sets.
     """
@@ -298,7 +298,7 @@ class User(Filter):
         return compiled
 
 
-class InArea(Filter):
+class Area(Filter):
     """
     Filters the elements which are within the given area.
     """

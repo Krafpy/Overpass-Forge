@@ -5,12 +5,12 @@ from .filters import (
     BoundingBox,
     Ids,
     KeyEqualsValue,
-    IntersectsWith,
+    Intersection,
     Newer,
     Changed,
     User,
     Around,
-    InArea,
+    Area,
     Pivot
 )
 from .variables import VariableManager
@@ -181,7 +181,7 @@ class QueryStatement(Statement):
         self.filters = list(filters)
 
         if isinstance(input_set, Statement):
-            self.filters.append(IntersectsWith(input_set))
+            self.filters.append(Intersection(input_set))
 
         if isinstance(ids, int):
             self.filters.append(Ids(ids))
@@ -192,7 +192,7 @@ class QueryStatement(Statement):
             self.filters.append(BoundingBox(*bounding_box))
         
         if within is not None:
-            self.filters.append(InArea(within))
+            self.filters.append(Area(within))
         
         if around is not None:
             self.filters.append(Around(around[1], around[0]))
@@ -204,13 +204,13 @@ class QueryStatement(Statement):
         """
         Adds filters to the statement/set.
         """
-        return self.__class__(filters=[IntersectsWith(self), *args])
+        return self.__class__(filters=[Intersection(self), *args])
     
     def where(self, **tags: str) -> QueryStatement:
         """
         Adds filters "key"="value" on tags.
         """
-        filters: list[Filter] = [IntersectsWith(self)]
+        filters: list[Filter] = [Intersection(self)]
         for k, v in tags.items():
             filters.append(KeyEqualsValue(k, v))
         return self.__class__(filters=filters)
@@ -220,30 +220,30 @@ class QueryStatement(Statement):
         Filters the elements that are in the specified area.
         """
         if isinstance(area, BoundingBox):
-            return self.__class__(filters=[IntersectsWith(self), area])
+            return self.__class__(filters=[Intersection(self), area])
         elif isinstance(area, tuple):
-            return self.__class__(filters=[IntersectsWith(self), BoundingBox(*area)])
+            return self.__class__(filters=[Intersection(self), BoundingBox(*area)])
         else:
-            return self.__class__(filters=[IntersectsWith(self), InArea(area)])
+            return self.__class__(filters=[Intersection(self), Area(area)])
     
     def intersection(self, *others: Statement) -> QueryStatement:
         """
         Returns the statement computing the intersection of
         this set with the others.
         """
-        return self.__class__(filters=[IntersectsWith(self, *others)])
+        return self.__class__(filters=[Intersection(self, *others)])
     
     def changed_since(self, date: datetime) -> QueryStatement:
         """
         Filters the elements that were changed since the specified datetime.
         """
-        return self.__class__(filters=[IntersectsWith(self), Newer(date)])
+        return self.__class__(filters=[Intersection(self), Newer(date)])
     
     def changed_between(self, lower: datetime, higher: datetime) -> QueryStatement:
         """
         Filters the elements that were changed between the two specified dates.
         """
-        return self.__class__(filters=[IntersectsWith(self), Changed(lower, higher)])
+        return self.__class__(filters=[Intersection(self), Changed(lower, higher)])
     
     def last_changed_by(self, *users: str | int) -> QueryStatement:
         """
@@ -252,13 +252,13 @@ class QueryStatement(Statement):
         Args:
             *users: the list of user names or user ids
         """
-        return self.__class__(filters=[IntersectsWith(self), User(*users)])
+        return self.__class__(filters=[Intersection(self), User(*users)])
     
     def outlines_of(self, area: 'Areas') -> QueryStatement:
         """
         Filters the elements that are part of the outline of the given area.
         """
-        return self.__class__(filters=[IntersectsWith(self), Pivot(area)])
+        return self.__class__(filters=[Intersection(self), Pivot(area)])
     
     def around(self,
         radius: float,
@@ -271,7 +271,7 @@ class QueryStatement(Statement):
         or a list of given coordinates (cannot specify both).
         """
         around = Around(radius, other, lats, lons)
-        return self.__class__(filters=[IntersectsWith(self), around])
+        return self.__class__(filters=[Intersection(self), around])
 
     @property
     def dependencies(self) -> list[Statement]:

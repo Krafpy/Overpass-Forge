@@ -3,7 +3,7 @@ from .statements import Statement
 from .variables import VariableManager
 from .base import QueryStatement
 from .utils import partition
-from .filters import Filter, IntersectsWith
+from .filters import Filter, Intersection
 from dataclasses import dataclass
 
 
@@ -107,7 +107,7 @@ class DependencySimplifier(Visitor):
         is_single = lambda stmt: self.deps[stmt].ref_count == 1
 
         for filt in statement.filters:
-            if not isinstance(filt, IntersectsWith):
+            if not isinstance(filt, Intersection):
                 new_filters.append(filt)
                 continue
             
@@ -119,7 +119,7 @@ class DependencySimplifier(Visitor):
                 else:
                     locked.append(stmt)
             if len(locked) > 0:
-                new_filters.append(IntersectsWith(*locked))
+                new_filters.append(Intersection(*locked))
         
         statement.filters = new_filters
 
