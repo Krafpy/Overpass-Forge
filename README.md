@@ -32,7 +32,7 @@ python -m pytest ./tests
 
 List of currently implemented features, based on the [Overpass QL wiki](https://wiki.openstreetmap.org/wiki/Overpass_API/Overpass_QL).
 
-- Settings: **all except augmented-difference between dates (*diff*)**
+- Settings: all except augmented-difference between dates (*adiff*)
 - Block statements
   - [x] union, difference, intersection
   - [ ] For-each loop (*foreach*)
@@ -44,7 +44,7 @@ List of currently implemented features, based on the [Overpass QL wiki](https://
   - [ ] Recurse up relations (<<) and down (>>)
   - [ ] Query for areas (is_in)
   - [ ] Statements *timeline*, *local*, *convert*, *make*
-  - [x] The Query Statement (***node, way, rel, area* only**)
+  - [x] The Query Statement (*node, way, rel, area* **only**)
   - [ ] The Query Filter
 - Filters
   - [x] By tag (*has-kv*)
