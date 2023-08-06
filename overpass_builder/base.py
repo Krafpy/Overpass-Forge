@@ -215,7 +215,7 @@ class QueryStatement(Statement):
             filters.append(K(key) == V(value))
         return self.__class__(filters=filters)
     
-    def within(self, area: tuple[float,float,float,float] | BoundingBox | 'Areas') -> QueryStatement:
+    def inside(self, area: tuple[float,float,float,float] | BoundingBox | 'Areas') -> QueryStatement:
         """
         Filters the elements that are in the specified area.
         """
