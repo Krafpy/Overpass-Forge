@@ -52,7 +52,7 @@ class Statement:
             ```python
             >>> foo = Nodes().where(name="Foo")
             >>> bar = Statement("node.{x}[amenity=\"bar\"]->.{:out_var};", x=foo)
-            >>> baz = Nodes(input_set=bar).inside((50.6,7.0,50.8,7.3))
+            >>> baz = Nodes(input_set=bar).within((50.6,7.0,50.8,7.3))
             >>> print(build(baz))
                 node["name"="Foo"]->.set_0;
                 node.set_0[amenity="bar"]->.set_1;
@@ -168,7 +168,7 @@ class QueryStatement(Statement):
         ids: Iterable[int] | int | None = None,
         bounding_box: tuple[float, float, float, float] | None = None,
         input_set: Statement | None = None,
-        inside: Areas | None = None,
+        within: Areas | None = None,
         around: tuple[Statement, float] | Around | None = None,
         filters: Iterable[Filter] = [],
         **tags: str
@@ -189,8 +189,8 @@ class QueryStatement(Statement):
         if bounding_box is not None:
             self.filters.append(BoundingBox(*bounding_box))
         
-        if inside is not None:
-            self.filters.append(Area(inside))
+        if within is not None:
+            self.filters.append(Area(within))
         
         if isinstance(around, Around):
             self.filters.append(around)
@@ -215,7 +215,7 @@ class QueryStatement(Statement):
             filters.append(K(key) == V(value))
         return self.__class__(filters=filters)
     
-    def inside(self, area: tuple[float,float,float,float] | BoundingBox | Polygon | Area | 'Areas') -> QueryStatement:
+    def within(self, area: tuple[float,float,float,float] | BoundingBox | Polygon | Area | 'Areas') -> QueryStatement:
         """
         Filters the elements that are in the specified area.
         """

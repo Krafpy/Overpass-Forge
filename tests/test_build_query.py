@@ -78,7 +78,7 @@ def test_dependent_raw_statements():
         "(.set_0; - .set_1;);"
 
 def test_with_area_filter():
-    bus_stops = Nodes(inside=Areas(name="Bonn"), highway="bus_stop")
+    bus_stops = Nodes(within=Areas(name="Bonn"), highway="bus_stop")
     ways = Ways(around=(bus_stops, 100.0)).where(amenity="cinema")
     nodes = Nodes(around=(bus_stops, 100.0)).where(amenity="cinema")
     assert build((ways + nodes).out("meta")) == \
