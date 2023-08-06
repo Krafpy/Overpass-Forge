@@ -172,7 +172,7 @@ class QueryStatement(Statement):
         bounding_box: tuple[float, float, float, float] | None = None,
         input_set: Statement | None = None,
         inside: Areas | None = None,
-        around: tuple[Statement, float] | None = None,
+        around: tuple[Statement, float] | Around | None = None,
         filters: Iterable[Filter] = [],
         **tags: str
     ) -> None:
@@ -195,7 +195,9 @@ class QueryStatement(Statement):
         if inside is not None:
             self.filters.append(Area(inside))
         
-        if around is not None:
+        if isinstance(around, Around):
+            self.filters.append(around)
+        elif around is not None:
             self.filters.append(Around(around[1], around[0]))
         
         for key, value in tags.items():
