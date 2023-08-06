@@ -81,7 +81,7 @@ class Statement:
     
     def out(self, *options: str | tuple[float, float, float, float]) -> Statement:
         """
-        Configure the result of this statement to be outputed.
+        Indicate that the result of this statement must be outputed.
 
         Args:
             options: one or a combination of "ids", "skel", "body", "tags",
