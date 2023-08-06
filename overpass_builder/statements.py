@@ -39,7 +39,7 @@ class Union(BlockStatement):
             substmts.append(vars.get_or_compile(stmt, ".{};"))
         if out_var is None:
             return f"({' '.join(substmts)});"
-        return f"({' '.join(substmts)})->{out_var};"
+        return f"({' '.join(substmts)})->.{out_var};"
 
 
 class Difference(BlockStatement):
