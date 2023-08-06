@@ -8,6 +8,10 @@ from datetime import datetime
 
 @dataclass
 class Settings:
+    """
+    Represents an Overpass query's global settings.
+    """
+
     out: Literal["json", "xml", "csv"] = "json"
     timeout: int | None = 25
     maxsize: int | None = None
@@ -64,6 +68,10 @@ class Settings:
 
 
 def build(statement: Statement, settings: Settings | None = None):
+    """
+    Builds the Overpass query string of the given statement, with
+    the optional global settings.
+    """
     traverse_statement(statement, CycleDetector())
     dependencies = DependencyRetriever()
     traverse_statement(statement, dependencies)

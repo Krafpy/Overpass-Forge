@@ -20,6 +20,32 @@ class Statement:
     """
 
     def __init__(self, raw: str = "", **dependencies: Statement) -> None:
+        """
+        Raw Overpass query string. It can be formated to support dependency
+        from other statements (raw or not). Placholders will be replaced
+        by the names of the variables where the dependencies output their
+        results.
+
+        Args:
+            raw (str): A formatable string of the query. Named placeholders
+            (e.g. "{name}") indicating dependency on other statements. An
+            optional special {:out_var} placeholder indicates where the name of
+            the output set must be placed.
+            **dependencies (Statement): the list of named statement on which
+            this statements depends on. The names must match the placeholders
+            in the raw query.
+        
+        Example:
+            ```python
+            >>> foo = Nodes().where(name="Foo")
+            >>> bar = Statement("node.{x}[amenity=\"bar\"]->.{:out_var};", x=foo)
+            >>> baz = Nodes(input_set=bar).within((50.6,7.0,50.8,7.3))
+            >>> print(build(baz))
+                node["name"="Foo"]->.set_0;
+                node.set_0[amenity="bar"]->.set_1;
+                node.set_1(50.6,7.0,50.8,7.3);
+            ```
+        """
         self._raw = raw
         self._dependencies = dependencies
         if "{}" in raw:
@@ -47,7 +73,7 @@ class Statement:
 
     def compile(self, vars: VariableManager, out_var: str | None = None) -> str:
         """
-        Compiles the statement.
+        Compiles the statement into its Overpass query string.
         """
         var_names: dict[str, str] = {}
         for name, stmt in self._dependencies.items():
@@ -86,7 +112,9 @@ class Statement:
         Args:
             options: one or a combination of "ids", "skel", "body", "tags",
             "meta", "noids", "geom", "bb", "center", "asc", "qt", "count" or
-            a bounding box (south,east,west,north)
+            a bounding box (south,west,north,east)
+        
+        Returns: itself
         """
         extract = lambda item: item.strip().split(' ')
         valid_options: set[str] = set()
@@ -111,7 +139,8 @@ class Statement:
 
 class QueryStatement(Statement):
     """
-    Represents a query statement, e.g. node, rel, way...
+    Represents a query statement, e.g. node, rel, way... Query statements always
+    return a set that can be used as input to other statements/filters.
     """
 
     _type_specifier: str = "<Unspecified>"

@@ -8,6 +8,9 @@ from dataclasses import dataclass
 
 
 class Visitor:
+    """
+    Base visitor class.
+    """
     def visit_statement_pre(self, statement: Statement):
         pass
     
@@ -16,9 +19,14 @@ class Visitor:
 
 
 class CircularDependencyError(Exception):
+    """Raised when a circular dependency is detected."""
     pass
 
 class CycleDetector(Visitor):
+    """
+    A visitor to detected cycles in a statement's dependency,
+    raises a `CircularDependencyError` exception if detected.
+    """
     def __init__(self) -> None:
         super().__init__()
         self.visiting: dict[Statement, bool] = {}
@@ -35,6 +43,9 @@ class CycleDetector(Visitor):
 
 @dataclass
 class Dependency:
+    """
+    Stores additional information on a specific dependency.
+    """
     statement: Statement
     ref_count: int = 1
     no_inline: bool = False
@@ -50,6 +61,9 @@ class Dependency:
         return True
 
 class DependencyRetriever(Visitor):
+    """
+    Collects information on the dependencies in a statement's graph.
+    """
     def __init__(self) -> None:
         super().__init__()
         self.deps: dict[Statement, Dependency] = {}
@@ -76,6 +90,17 @@ class DependencyRetriever(Visitor):
 
 
 class DependencySimplifier(Visitor):
+    """
+    Simplifies chained filter dependencies. For example:
+    ```text
+        node[tourism=yes]->set_0;
+        node.set_0[amenity=restaurant];
+    ```
+    becomes:
+    ```text
+        node[tourism=yes][amenity=restaurant];
+    ```
+    """
     def __init__(self, deps: dict[Statement, Dependency]) -> None:
         super().__init__()
         self.deps = deps
@@ -106,6 +131,10 @@ class DependencySimplifier(Visitor):
 
 
 class Compiler(Visitor):
+    """
+    Compiles a statement: builds a sequence of string that once
+    concatenated represents the compiled statement's query string.
+    """
     def __init__(self, root: Statement, deps: dict[Statement, Dependency]) -> None:
         super().__init__()
 
@@ -136,6 +165,12 @@ class Compiler(Visitor):
 
 
 def traverse_statement(statement: Statement, visitor: Visitor, visited: set[Statement] | None = None):
+    """
+    Applies on a visitor on the statement's dependency graph in a
+    Depth-First Search manner. The graph must not contain cycles.
+    If a substatement is referenced more that once it will be pre-visited
+    multiple times but post-visited only once.
+    """
     if visited is None:
         visited = set()
     
