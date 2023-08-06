@@ -52,7 +52,7 @@ class Statement:
             ```python
             >>> foo = Nodes().where(name="Foo")
             >>> bar = Statement("node.{x}[amenity=\"bar\"]->.{:out_var};", x=foo)
-            >>> baz = Nodes(input_set=bar).within((50.6,7.0,50.8,7.3))
+            >>> baz = Nodes(input_set=bar).inside((50.6,7.0,50.8,7.3))
             >>> print(build(baz))
                 node["name"="Foo"]->.set_0;
                 node.set_0[amenity="bar"]->.set_1;
