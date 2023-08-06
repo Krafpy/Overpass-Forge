@@ -298,7 +298,7 @@ class User(Filter):
         return compiled
 
 
-class AreaFilter(Filter):
+class InArea(Filter):
     """
     Filters the elements which are within the given area.
     """
@@ -312,7 +312,7 @@ class AreaFilter(Filter):
     def compile(self, vars: VariableManager) -> str:
         return f"(area.{vars[self.input_area]})"
 
-class PivotFilter(Filter):
+class Pivot(Filter):
     """
     Filters the elements which are part of the outline of the given
     area.

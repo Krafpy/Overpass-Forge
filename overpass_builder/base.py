@@ -10,8 +10,8 @@ from .filters import (
     Changed,
     User,
     Around,
-    AreaFilter,
-    PivotFilter
+    InArea,
+    Pivot
 )
 from .variables import VariableManager
 from datetime import datetime
@@ -183,7 +183,7 @@ class QueryStatement(Statement):
             self.filters.append(BoundingBox(*bounding_box))
         
         if within is not None:
-            self.filters.append(AreaFilter(within))
+            self.filters.append(InArea(within))
         
         if around is not None:
             self.filters.append(Around(around[1], around[0]))
@@ -215,7 +215,7 @@ class QueryStatement(Statement):
         elif isinstance(area, tuple):
             return self.__class__(filters=[IntersectsWith(self), BoundingBox(*area)])
         else:
-            return self.__class__(filters=[IntersectsWith(self), AreaFilter(area)])
+            return self.__class__(filters=[IntersectsWith(self), InArea(area)])
     
     def intersection(self, *others: Statement) -> QueryStatement:
         """
@@ -249,7 +249,7 @@ class QueryStatement(Statement):
         """
         Filters the elements that are part of the outline of the given area.
         """
-        return self.__class__(filters=[IntersectsWith(self), PivotFilter(area)])
+        return self.__class__(filters=[IntersectsWith(self), Pivot(area)])
     
     def around(self,
         radius: float,
