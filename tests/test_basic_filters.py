@@ -1,4 +1,6 @@
-from overpass_builder.filters import BoundingBox, Newer, Changed, User
+from overpass_builder.filters import BoundingBox, Newer, Changed, User, AreaFilter, PivotFilter
+from overpass_builder.statements import Areas
+from overpass_builder.variables import VariableManager
 from datetime import datetime
 
 def test_bounding_box(no_vars):
@@ -22,3 +24,15 @@ def test_user_id(no_vars):
 
 def test_user_ids_names(no_vars):
     assert User("Steve",1,2,"Paul",3).compile(no_vars) == "(uid:1,2,3)(user:\"Steve\",\"Paul\")"
+
+def test_area_filter():
+    a = Areas()
+    vars = VariableManager()
+    name = vars.add_statement(a)
+    assert AreaFilter(a).compile(vars) == f"(area.{name})"
+
+def test_pivot_filter():
+    a = Areas()
+    vars = VariableManager()
+    name = vars.add_statement(a)
+    assert PivotFilter(a).compile(vars) == f"(pivot.{name})"

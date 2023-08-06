@@ -8,6 +8,7 @@ from .utils import partition
 if TYPE_CHECKING:
     from .base import Statement
     from .variables import VariableManager
+    from .statements import Areas
 
 
 class Filter:
@@ -295,3 +296,33 @@ class User(Filter):
         if len(names) > 0:
             compiled += f"(user:{','.join(names)})"
         return compiled
+
+
+class AreaFilter(Filter):
+    """
+    Filters the elements which are within the given area.
+    """
+    def __init__(self, input_area: 'Areas') -> None:
+        self.input_area = input_area
+    
+    @property
+    def dependencies(self) -> list[Statement]:
+        return [self.input_area]
+    
+    def compile(self, vars: VariableManager) -> str:
+        return f"(area.{vars[self.input_area]})"
+
+class PivotFilter(Filter):
+    """
+    Filters the elements which are part of the outline of the given
+    area.
+    """
+    def __init__(self, input_area: 'Areas') -> None:
+        self.input_area = input_area
+    
+    @property
+    def dependencies(self) -> list[Statement]:
+        return [self.input_area]
+    
+    def compile(self, vars: VariableManager) -> str:
+        return f"(pivot.{vars[self.input_area]})"
