@@ -2,6 +2,8 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING, Iterable
 from datetime import datetime
+
+from overpass_builder.variables import VariableManager
 from .variables import VariableManager
 from .utils import partition
 
@@ -32,136 +34,88 @@ class Filter:
         return f"<Filter \"{self._raw}\">"
 
 
+
 class Tag(Filter):
     """
-    Represents a generic tag filter (has/exists kv).
+    Represents a tag (key-value pair) filter.
     """
-    def __init__(self, case_sensitive=True) -> None:
-        super().__init__()
+    def __init__(self, comparison: str, case_sensitive=True):
+        """
+        Args:
+            comparison (str): the comparison expression of the tag filter
+            (e.g. "name"="Foo", !"tourism")
+            case_sensitive (bool): ignore case (if comparison is "name"="Foo"
+            then a tag "name"="fOO" is also valid)
+        """
+        self.comparison = comparison
         self.case_sensitive = case_sensitive
     
-    def _comparator(self) -> str:
-        raise NotImplementedError("Must be implemented in subclass.")
-
-    def compile(self, vars: VariableManager):
-        if self.case_sensitive:
-            return f"[{self._comparator()}]"
-        return f"[{self._comparator()},i]"
+    def compile(self, vars: VariableManager) -> str:
+        ending = "]" if self.case_sensitive else ",i]"
+        return f"[{self.comparison}{ending}"
     
-    def __repr__(self) -> str:
-        return f"<Tag {self._comparator()}>"
-
-class InvalidRegexError(Exception):
-    """Raised on an invalid regular expression."""
+    @staticmethod
+    def has(key: str):
+        return Tag(f"\"{key}\"")
     
-    def __init__(self, expr: str) -> None:
-        super().__init__(f"Invalid regular expression {expr}.")
+    @staticmethod
+    def hasnot(key: str):
+        return Tag(f"!\"{key}\"")
 
-
-class KeyExists(Tag):
+class V:
     """
-    Filter ["key"]
+    Represents the value of a tag.
     """
-    def __init__(self, key: str, case_sensitive=True) -> None:
-        super().__init__(case_sensitive)
-        self.key = key
+    def __init__(self, expr: str, regex=False):
+        """
+        Args:
+            expr: the key string
+            regex: wether the string is a regex
+        """
+        self.expr = expr
+        self.regex = regex
     
-    def _comparator(self) -> str:
-        return f"\"{self.key}\""
+    def __str__(self) -> str:
+        if self.regex:
+            return f"~\"{self.expr}\""
+        return f"=\"{self.expr}\""
 
-class KeyNotExists(Tag):
+class K:
     """
-    Filter [!"key"]
+    Represents the key of a tag. Used to build a tag filter expression.
+
+    Exemples:
+    ```python
+        K("amenity") == V("cinema"), K("amenity") == "cinema" -> ["amenity"="restaurant"]
+        K("amenity") != V("bar"), K("amenity") != "bar" -> ["amenity"!="restaurant"]
+        K("name") == V("^Foo$", regex=True) -> ["name"~"^Foo$"]
+        K("name") == V("^Baz$", regex=True) -> ["name"!~"^Baz$"]
+        K("^addr:.*$", regex=True) == V("^Foo$", regex=True) -> [~"^addr:.*$"~"^Foo$"]
+    ```
     """
-    def __init__(self, key: str, case_sensitive=True) -> None:
-        super().__init__(case_sensitive)
-        self.key = key
+    def __init__(self, expr: str, regex=False):
+        """
+        Args:
+            expr: the key string
+            regex: wether the string is a regex
+        """
+        self.expr = expr
+        self.regex = regex
     
-    def _comparator(self) -> str:
-        return f"!\"{self.key}\""
+    def __str__(self) -> str:
+        if self.regex:
+            return f"~\"{self.expr}\""
+        return f"\"{self.expr}\""
 
-class KeyEqualsValue(Tag):
-    """
-    Filter ["key"="value"]
-    """
-    def __init__(self, key: str, value: str, case_sensitive=True) -> None:
-        super().__init__(case_sensitive)
-        self.key = key
-        self.value = value
+    def __eq__(self, value: V | str):
+        if isinstance(value, str):
+            value = V(value)
+        return Tag(f"{self}{value}")
     
-    def _comparator(self) -> str:
-        return f"\"{self.key}\"=\"{self.value}\""
-
-class KeyNotEqualsValue(Tag):
-    """
-    Filter ["key"!="value"]
-    """
-    def __init__(self, key: str, value: str, case_sensitive=True) -> None:
-        super().__init__(case_sensitive)
-        self.key = key
-        self.value = value
-    
-    def _comparator(self) -> str:
-        return f"\"{self.key}\"!=\"{self.value}\""
-
-class ValueMatchesExpr(Tag):
-    """
-    Filter ["key"~"value_pattern"]
-    """
-    def __init__(self, key: str, pattern: str, check_pattern_on_compile=True, case_sensitive=True) -> None:
-        super().__init__(case_sensitive)
-        self.key = key
-        self.pattern = pattern
-        self.check_pattern_on_compile = check_pattern_on_compile
-    
-    def _comparator(self) -> str:
-        if self.check_pattern_on_compile:
-            try:
-                re.compile(self.pattern)
-            except re.error:
-                raise InvalidRegexError(self.pattern)
-        return f"\"{self.key}\"~\"{self.pattern}\""
-
-class ValueNotMatchesExpr(Tag):
-    """
-    Filter ["key"!~"value_pattern"]
-    """
-    def __init__(self, key: str, pattern: str, check_pattern_on_compile=True, case_sensitive=True) -> None:
-        super().__init__(case_sensitive)
-        self.key = key
-        self.pattern = pattern
-        self.check_pattern_on_compile = check_pattern_on_compile
-    
-    def _comparator(self) -> str:
-        if self.check_pattern_on_compile:
-            try:
-                re.compile(self.pattern)
-            except re.error:
-                raise InvalidRegexError(self.pattern)
-        return f"\"{self.key}\"!~\"{self.pattern}\""
-
-class KeyValueMatchExprs(Tag):
-    """
-    Filter [~"key_pattern"~"value_pattern"]
-    """
-    def __init__(self, key_pattern: str, value_pattern: str, check_pattern_on_compile=True, case_sensitive=True) -> None:
-        super().__init__(case_sensitive)
-        self.key_pattern = key_pattern
-        self.value_pattern = value_pattern
-        self.check_pattern_on_compile = check_pattern_on_compile
-    
-    def _comparator(self) -> str:
-        if self.check_pattern_on_compile:
-            try:
-                re.compile(self.key_pattern)
-            except re.error:
-                raise InvalidRegexError(self.key_pattern)
-            try:
-                re.compile(self.value_pattern)
-            except re.error:
-                raise InvalidRegexError(self.value_pattern)
-        return f"~\"{self.key_pattern}\"~\"{self.value_pattern}\""
-
+    def __ne__(self, value: V | str):
+        if isinstance(value, str):
+            value = V(value)
+        return Tag(f"{self}!{value}")
 
 
 class BoundingBox(Filter):
