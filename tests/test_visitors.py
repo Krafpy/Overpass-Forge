@@ -1,5 +1,5 @@
 from overpass_builder.statements import Nodes, Union, Difference
-from overpass_builder.visitors import CycleDetectionVisitor, CircularDependencyError, DependencyRetrievalVisitor, traverse_statement
+from overpass_builder.visitors import CycleDetector, CircularDependencyError, DependencyRetriever, traverse_statement
 import pytest
 
 def test_no_cycles():
@@ -7,7 +7,7 @@ def test_no_cycles():
     b = Nodes()
     c = Union(a, b)
     d = Union(a, b, c)
-    traverse_statement(d, CycleDetectionVisitor())
+    traverse_statement(d, CycleDetector())
 
 def test_has_cycle():
     a = Nodes()
@@ -17,7 +17,7 @@ def test_has_cycle():
     c.elements.append(d)
 
     with pytest.raises(CircularDependencyError):
-        traverse_statement(d, CycleDetectionVisitor())
+        traverse_statement(d, CycleDetector())
 
 def test_complex_no_cycle():
     a = Nodes()
@@ -38,7 +38,7 @@ def test_complex_no_cycle():
     u4.elements.append(u2)
     u4.elements.append(u3)
 
-    traverse_statement(u4, CycleDetectionVisitor())
+    traverse_statement(u4, CycleDetector())
 
 def test_complex_has_cycle():
     a = Nodes()
@@ -60,14 +60,14 @@ def test_complex_has_cycle():
     u4.elements.append(u3)
 
     with pytest.raises(CircularDependencyError):
-        traverse_statement(u4, CycleDetectionVisitor())
+        traverse_statement(u4, CycleDetector())
 
 def test_reference_count():
     a = Nodes()
     b = Nodes()
     c = Union(a, b)
     d = Union(a, b, c)
-    counter = DependencyRetrievalVisitor()
+    counter = DependencyRetriever()
     traverse_statement(d, counter)
 
     assert counter.deps[a].ref_count == 2
@@ -93,7 +93,7 @@ def test_complex_reference_count():
     u2.elements.append(u3)
     u4.elements.append(u1)
 
-    counter = DependencyRetrievalVisitor()
+    counter = DependencyRetriever()
     traverse_statement(u5, counter)
 
     assert counter.deps[a].ref_count == 2

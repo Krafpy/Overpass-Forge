@@ -1,6 +1,6 @@
 from __future__ import annotations
 from .statements import Statement
-from .visitors import traverse_statement, CycleDetectionVisitor, CompilationVisitor, DependencyRetrievalVisitor, SimplifyDependeciesVisitor
+from .visitors import traverse_statement, CycleDetector, Compiler, DependencyRetriever, DependencySimplifier
 from .base import DATE_FORMAT
 from dataclasses import dataclass
 from typing import Literal
@@ -64,12 +64,12 @@ class Settings:
 
 
 def build(statement: Statement, settings: Settings | None = None):
-    traverse_statement(statement, CycleDetectionVisitor())
-    dependencies = DependencyRetrievalVisitor()
+    traverse_statement(statement, CycleDetector())
+    dependencies = DependencyRetriever()
     traverse_statement(statement, dependencies)
-    traverse_statement(statement, SimplifyDependeciesVisitor(dependencies.deps))
+    traverse_statement(statement, DependencySimplifier(dependencies.deps))
 
-    compiler = CompilationVisitor(statement, dependencies.deps)
+    compiler = Compiler(statement, dependencies.deps)
     traverse_statement(statement, compiler)
 
     core_query = "\n".join(compiler.sequence)

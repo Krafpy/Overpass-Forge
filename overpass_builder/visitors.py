@@ -18,7 +18,7 @@ class Visitor:
 class CircularDependencyError(Exception):
     pass
 
-class CycleDetectionVisitor(Visitor):
+class CycleDetector(Visitor):
     def __init__(self) -> None:
         super().__init__()
         self.visiting: dict[Statement, bool] = {}
@@ -49,7 +49,7 @@ class Dependency:
             return False
         return True
 
-class DependencyRetrievalVisitor(Visitor):
+class DependencyRetriever(Visitor):
     def __init__(self) -> None:
         super().__init__()
         self.deps: dict[Statement, Dependency] = {}
@@ -69,7 +69,7 @@ class DependencyRetrievalVisitor(Visitor):
                 self._add_or_increment(substmt, 0, True)
 
 
-class SimplifyDependeciesVisitor(Visitor):
+class DependencySimplifier(Visitor):
     def __init__(self, deps: dict[Statement, Dependency]) -> None:
         super().__init__()
         self.deps = deps
@@ -99,7 +99,7 @@ class SimplifyDependeciesVisitor(Visitor):
         statement.filters = new_filters
 
 
-class CompilationVisitor(Visitor):
+class Compiler(Visitor):
     def __init__(self, root: Statement, deps: dict[Statement, Dependency]) -> None:
         super().__init__()
 
