@@ -144,10 +144,8 @@ class Statement:
         return self
     
     def __repr__(self) -> str:
-        if self.label is not None:
-            return f"<{self.__class__.__name__} \'{self.label}\'>"
-        else:
-            return f"<{self.__class__.__name__} {id(self)}>"
+        info = self.label if self.label else id(self)
+        return f"<{self.__class__.__name__} \'{info}\'>"
 
 class QueryStatement(Statement):
     """
