@@ -20,7 +20,16 @@ class Statement:
     """
 
     def __init__(self, raw: str = "", **dependencies: Statement) -> None:
+        self._raw = raw
+        self._dependencies = dependencies
+        if "{}" in raw:
+            raise ValueError("All inserted dependencies must be named.")
+        for name in dependencies.keys():
+            if "{" + name + "}" not in raw:
+                raise ValueError(f"Unused dependency {name}.")
+        
         self.out_options: set[str] | None = None
+        self.label: str | None = None
     
     def accept_pre(self, visitor: Visitor):
         """
@@ -40,14 +49,22 @@ class Statement:
         """
         Compiles the statement.
         """
-        raise NotImplementedError("Must be implemented in subclass.")
+        if out_var is not None:
+            raise RuntimeError("Base statement cannot output to variables.")
+        
+        var_names: dict[str, str] = {}
+        for name, stmt in self._dependencies.items():
+            if not vars.is_named(stmt):
+                raise RuntimeError("All inserted sets must use variables.")
+            var_names[name] = vars[stmt]
+        return self._raw.format(**var_names)
     
     @property
     def dependencies(self) -> list[Statement]:
         """
         The list of statements on which this statement depends on.
         """
-        return []
+        return list(self._dependencies.values())
     
     def __hash__(self) -> int:
         return id(self)
@@ -83,7 +100,12 @@ class Statement:
         
         self.out_options = valid_options
         return self
-
+    
+    def __repr__(self) -> str:
+        if self.label is not None:
+            return f"<{self.__class__.__name__} \'{self.label}\'>"
+        else:
+            return f"<{self.__class__.__name__} {id(self)}>"
 
 class QueryStatement(Statement):
     """

@@ -1,5 +1,5 @@
 from overpass_builder.builder import build
-from overpass_builder.statements import Nodes, Difference, Union
+from overpass_builder.statements import Nodes, Difference, Union, Statement
 
 def test_no_dependencies_1():
     assert build(Nodes().where(amenity="restaurant")) == \
@@ -48,3 +48,19 @@ def test_filter_dependency():
         ".set_1 out;\n" \
         "(.set_0; .set_1;);\n" \
         "out;"
+
+def test_chained_filters():
+    a = Nodes()
+    b = a.where(amenity="bar")
+    c = b.where(parking="yes")
+    d = c.where(tourism="yes")
+    assert build(d) == """node["amenity"="bar"]["parking"="yes"]["tourism"="yes"];"""
+
+def test_raw_statement():
+    a = Nodes().where(amenity="bar")
+    b = Nodes(input_set=a).where(tourism="yes")
+    c = Statement("(.{y}; - .{x};) -> .items;", x=a, y=b)
+    assert build(c) == \
+        """node["amenity"="bar"]->.set_0;\n""" \
+        """node.set_0["tourism"="yes"]->.set_1;\n""" \
+        """(.set_1; - .set_0;) -> .items;"""

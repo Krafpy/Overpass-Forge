@@ -208,6 +208,9 @@ class IntersectsWith(Filter):
                 raise RuntimeError("All statements used in an intersection must be stored in variables.")
             names.append(vars[stmt])
         return "." + ".".join(names)
+    
+    def __repr__(self) -> str:
+        return f"<IntersectsWith {', '.join(map(str, self.statements))}>"
 
 
 class Newer(Filter):

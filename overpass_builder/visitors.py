@@ -54,19 +54,25 @@ class DependencyRetriever(Visitor):
         super().__init__()
         self.deps: dict[Statement, Dependency] = {}
     
-    def _add_or_increment(self, statement, *args):
+    def visit_statement_pre(self, statement: Statement):
         if statement not in self.deps:
-            self.deps[statement] = Dependency(statement, *args)
+            self.deps[statement] = Dependency(statement)
         else:
             self.deps[statement].ref_count += 1
-    
-    def visit_statement_pre(self, statement: Statement):
-        self._add_or_increment(statement)
-        if not isinstance(statement, QueryStatement):
+
+        # If we are compiling raw statement, all of its
+        # dependencies must be stored in variables
+        if statement.__class__ is Statement:
+            for stmt in statement.dependencies:
+                if stmt not in self.deps:
+                    self.deps[stmt] = Dependency(stmt, 0, True)
             return
-        for f in statement.filters:
-            for substmt in f.dependencies:
-                self._add_or_increment(substmt, 0, True)
+        # Dependencies used by filters must always from variables
+        if isinstance(statement, QueryStatement):
+            for f in statement.filters:
+                for stmt in f.dependencies:
+                    if stmt not in self.deps:
+                        self.deps[stmt] = Dependency(stmt, 0, True)
 
 
 class DependencySimplifier(Visitor):
