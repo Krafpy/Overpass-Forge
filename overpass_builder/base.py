@@ -4,14 +4,15 @@ from .filters import (
     Filter,
     BoundingBox,
     Ids,
-    Tag, K, V,
+    K, V,
     Intersection,
     Newer,
     Changed,
     User,
     Around,
     Area,
-    Pivot
+    Pivot,
+    Polygon
 )
 from .variables import VariableManager
 from datetime import datetime
@@ -215,11 +216,11 @@ class QueryStatement(Statement):
             filters.append(K(key) == V(value))
         return self.__class__(filters=filters)
     
-    def inside(self, area: tuple[float,float,float,float] | BoundingBox | 'Areas') -> QueryStatement:
+    def inside(self, area: tuple[float,float,float,float] | BoundingBox | 'Areas' | Polygon) -> QueryStatement:
         """
         Filters the elements that are in the specified area.
         """
-        if isinstance(area, BoundingBox):
+        if isinstance(area, Filter):
             return self.__class__(filters=[Intersection(self), area])
         elif isinstance(area, tuple):
             return self.__class__(filters=[Intersection(self), BoundingBox(*area)])
