@@ -33,7 +33,10 @@ python -m pytest ./tests
 List of currently implemented features, based on the [Overpass QL wiki](https://wiki.openstreetmap.org/wiki/Overpass_API/Overpass_QL).
 
 - Settings: **all except augmented-difference between dates (*diff*)**
-- Block statements: **union, difference, intersection**
+- Block statements
+  - [x] union, difference, intersection
+  - [ ] For-each loop (*foreach*)
+  - [ ] Block statements *if, for, complete, retro, compare*
 - Standalone statements
   - [x] out
   - [x] Item (implicit)
