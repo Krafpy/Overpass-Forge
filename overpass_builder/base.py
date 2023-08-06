@@ -1,12 +1,24 @@
 from __future__ import annotations
 from typing import Iterable, TYPE_CHECKING
-from .filters import Filter, BoundingBox, Ids, KeyEqualsValue, IntersectsWith, Newer
+from .filters import (
+    Filter,
+    BoundingBox,
+    Ids,
+    KeyEqualsValue,
+    IntersectsWith,
+    Newer,
+    Changed,
+    User,
+    Around,
+    AreaFilter,
+    PivotFilter
+)
 from .variables import VariableManager
 from datetime import datetime
 
 if TYPE_CHECKING:
     from .visitors import Visitor
-    from .statements import Difference, Union
+    from .statements import Difference, Union, Areas
 
 
 OUT_OPTIONS = ("ids", "skel", "body", "tags", "meta", "noids", "geom", "bb", "center", "asc", "qt", "count")
@@ -146,10 +158,13 @@ class QueryStatement(Statement):
     _type_specifier: str = "<Unspecified>"
     
     def __init__(self, *,
-        ids: Ids | Iterable[int] | int | None = None,
-        bounding_box: BoundingBox | tuple[float, float, float, float] | None = None,
+        ids: Iterable[int] | int | None = None,
+        bounding_box: tuple[float, float, float, float] | None = None,
         input_set: Statement | None = None,
+        within: Areas | None = None,
+        around: tuple[Statement, float] | None = None,
         filters: Iterable[Filter] = [],
+        **tags: str
     ) -> None:
         
         super().__init__()
@@ -159,17 +174,22 @@ class QueryStatement(Statement):
         if isinstance(input_set, Statement):
             self.filters.append(IntersectsWith(input_set))
 
-        if isinstance(ids, Ids):
-            self.filters.append(ids)
-        elif isinstance(ids, int):
+        if isinstance(ids, int):
             self.filters.append(Ids(ids))
         elif ids is not None:
             self.filters.append(Ids(*ids))
 
-        if isinstance(bounding_box, BoundingBox):
-            self.filters.append(bounding_box)
-        elif isinstance(bounding_box, tuple):
+        if bounding_box is not None:
             self.filters.append(BoundingBox(*bounding_box))
+        
+        if within is not None:
+            self.filters.append(AreaFilter(within))
+        
+        if around is not None:
+            self.filters.append(Around(around[1], around[0]))
+        
+        for key, value in tags.items():
+            self.filters.append(KeyEqualsValue(key, value))
     
     def filter(self, *args: Filter) -> QueryStatement:
         """
@@ -186,12 +206,16 @@ class QueryStatement(Statement):
             filters.append(KeyEqualsValue(k, v))
         return self.__class__(filters=filters)
     
-    def within(self, arg: tuple[float,float,float,float] | BoundingBox) -> QueryStatement:
+    def within(self, area: tuple[float,float,float,float] | BoundingBox | 'Areas') -> QueryStatement:
         """
         Filters the elements that are in the specified area.
         """
-        bbox = arg if isinstance(arg, BoundingBox) else BoundingBox(*arg)
-        return self.__class__(filters=[IntersectsWith(self), bbox])
+        if isinstance(area, BoundingBox):
+            return self.__class__(filters=[IntersectsWith(self), area])
+        elif isinstance(area, tuple):
+            return self.__class__(filters=[IntersectsWith(self), BoundingBox(*area)])
+        else:
+            return self.__class__(filters=[IntersectsWith(self), AreaFilter(area)])
     
     def intersection(self, *others: Statement) -> QueryStatement:
         """
@@ -205,6 +229,33 @@ class QueryStatement(Statement):
         Filters the elements that were changed since the specified datetime.
         """
         return self.__class__(filters=[IntersectsWith(self), Newer(date)])
+    
+    def changed_between(self, lower: datetime, higher: datetime) -> QueryStatement:
+        """
+        Filters the elements that were changed between the two specified dates.
+        """
+        return self.__class__(filters=[IntersectsWith(self), Changed(lower, higher)])
+    
+    def last_changed_by(self, *users: str | int) -> QueryStatement:
+        """
+        Filters the elements that last changed by any of the given users.
+
+        Args:
+            *users: the list of user names or user ids
+        """
+        return self.__class__(filters=[IntersectsWith(self), User(*users)])
+    
+    def around(self,
+        radius: float,
+        other: Statement | None,
+        lats: Iterable[float] | None = None, 
+        lons: Iterable[float] | None = None
+    ):
+        """
+        Filters elements that are within a given radius of the elements of another set
+        or a list of given coordinates (cannot specify both).
+        """
+        return self.__class__(filters=[IntersectsWith(self), Around(radius, other, lats, lons)])
 
     @property
     def dependencies(self) -> list[Statement]:

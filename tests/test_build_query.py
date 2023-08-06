@@ -1,5 +1,5 @@
 from overpass_builder.builder import build
-from overpass_builder.statements import Nodes, Difference, Union, Statement
+from overpass_builder.statements import Nodes, Difference, Union, Statement, Areas, Ways
 
 def test_no_dependencies_1():
     assert build(Nodes().where(amenity="restaurant")) == \
@@ -76,3 +76,13 @@ def test_dependent_raw_statements():
         "node[\"tourism\"=\"hotel\"] -> .set_0;\n" \
         "node[\"amenity\"=\"bar\"] -> .set_1;\n" \
         "(.set_0; - .set_1;);"
+
+def test_with_area_filter():
+    bus_stops = Nodes(within=Areas(name="Bonn"), highway="bus_stop")
+    ways = Ways(around=(bus_stops, 100.0)).where(amenity="cinema")
+    nodes = Nodes(around=(bus_stops, 100.0)).where(amenity="cinema")
+    assert build((ways + nodes).out("meta")) == \
+        """area["name"="Bonn"]->.set_0;\n""" \
+        """node(area.set_0)["highway"="bus_stop"]->.set_1;\n""" \
+        """(way(around.set_1:100.0)["amenity"="cinema"]; node(around.set_1:100.0)["amenity"="cinema"];);\n""" \
+        """out meta;"""
