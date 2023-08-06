@@ -19,17 +19,23 @@ class Areas(QueryStatement):
 
 
 class Union(BlockStatement):
-    def __init__(self, *elements: Statement) -> None:
+    """
+    Represents a union of statements: `(statement_1; statement_2; …);`
+    """
+    def __init__(self, *statements: Statement) -> None:
+        """
+        Builds the union of the listed statements.
+        """
         super().__init__()
-        self.elements = list(elements)
+        self.statements = list(statements)
     
     @property
     def dependencies(self) -> list[Statement]:
-        return [*self.elements]
+        return [*self.statements]
     
     def _compile(self, vars: VariableManager, out_var: str | None = None) -> str:
         substmts = []
-        for stmt in self.elements:
+        for stmt in self.statements:
             substmts.append(vars.get_or_compile(stmt, ".{};"))
         if out_var is None:
             return f"({' '.join(substmts)});"
@@ -37,7 +43,13 @@ class Union(BlockStatement):
 
 
 class Difference(BlockStatement):
+    """
+    Represents the difference of two statements: `(statement_1 - statement_2;);`
+    """
     def __init__(self, a: Statement, b: Statement) -> None:
+        """
+        Builds the difference of the two statements `(a; - b;)`;
+        """
         super().__init__()
         self.a = a
         self.b = b
