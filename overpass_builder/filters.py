@@ -220,3 +220,6 @@ class Newer(Filter):
     def compile(self, vars: VariableManager) -> str:
         from .base import DATE_FORMAT
         return f"(newer:{self.date.strftime(DATE_FORMAT)})"
+    
+    def __repr__(self) -> str:
+        return f"<Newer {self.date}>"
