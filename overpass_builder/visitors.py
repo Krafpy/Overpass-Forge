@@ -150,6 +150,8 @@ class Compiler(Visitor):
             name_to = self.variables.add_statement(statement)
             compiled = statement.compile(self.variables, name_to)
             self.sequence.append(compiled)
+        # Other statement that can be inlined are automatically
+        # handled in each statement's compilation
 
 
 def traverse_statement(statement: Statement, visitor: Visitor, visited: set[Statement] | None = None):
