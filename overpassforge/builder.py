@@ -1,16 +1,22 @@
 from __future__ import annotations
 from .statements import Statement
-from .visitors import traverse_statement, CycleDetector, Compiler, DependencyRetriever, DependencySimplifier
+from ._visitors import traverse_statement as _traverse
+from ._visitors import CycleDetector as _CycleDetector
+from ._visitors import Compiler as _Compiler
+from ._visitors import DependencyRetriever as _DependencyRetriever
+from ._visitors import DependencySimplifier as _DependencySimplifier
 from .base import DATE_FORMAT
 from dataclasses import dataclass
 from typing import Literal
 from datetime import datetime
 import copy
+import re
 
 @dataclass
 class Settings:
-    """
-    Represents an Overpass query's global settings.
+    """Global settings of an Overpass query.
+    See the `Overpass reference <https://wiki.openstreetmap.org/wiki/Overpass_API/Overpass_QL#Settings>`_
+    for more details.
     """
 
     out: Literal["json", "xml", "csv"] = "json"
@@ -23,7 +29,7 @@ class Settings:
     csv_header_line: bool = True
     csv_separator: str | None = None
 
-    def compile(self) -> str:
+    def _compile(self) -> str:
         seq: list[str] = []
         add = lambda s: seq.append(f"[{s}]")
         
@@ -68,21 +74,66 @@ class Settings:
 
 
 
-def build(statement: Statement, settings: Settings | None = None):
-    """
-    Builds the Overpass query string of the given statement, with
+def build(statement: Statement, settings: Settings | None = None) -> str:
+    """Builds the Overpass query string of the given statement, with
     the optional global settings.
+
+    Args:
+        statement: The statement to compile.
+        settings: Global query settings to append at the top of the generated query.
+    
+    Returns:
+        The compiled Overpass query.
+
+    Raises:
+        CircularDependencyError: One of the substatements requires its own result.
+        AttributeError: Invalid (sub)statement.
+        RuntimeError: Unexpected internal compilation error.
     """
     statement = copy.deepcopy(statement)
-    traverse_statement(statement, CycleDetector())
-    dependencies = DependencyRetriever()
-    traverse_statement(statement, dependencies)
-    traverse_statement(statement, DependencySimplifier(dependencies.deps))
+    _traverse(statement, _CycleDetector())
+    dependencies = _DependencyRetriever()
+    _traverse(statement, dependencies)
+    _traverse(statement, _DependencySimplifier(dependencies.deps))
 
-    compiler = Compiler(statement, dependencies.deps)
-    traverse_statement(statement, compiler)
+    compiler = _Compiler(statement, dependencies.deps)
+    _traverse(statement, compiler)
 
     core_query = "\n".join(compiler.sequence)
     if settings is not None:
-        return f"{settings.compile()}\n{core_query}"
+        return f"{settings._compile()}\n{core_query}"
     return core_query
+
+def beautify(query: str) -> str:
+    """
+    Beautifies a compiled query string (i.e. adds indentation, line breaks...)
+    """
+    query, _ = re.subn(r"\(\(", "(\n(\n", query)
+    query, _ = re.subn(r"(\n\(|^\()", "\n(\n", query)
+    query, _ = re.subn(r"\n\n", "\n", query)
+    query, _ = re.subn(r"\)\;", "\n);", query)
+    query, _ = re.subn(r"\)\-\>", "\n)->", query)
+    query, _ = re.subn(r"\; ", ";\n", query)
+
+    indented = ""
+    indent = 0
+    i = 0
+    while i < len(query):
+        next_one = query[i]
+        next_two = query[i:min(i+2,len(query))]
+        if next_two == "(\n":
+            indent += 1
+            indented += "(\n" + "  " * indent
+            i += 2
+        elif next_two == "\n)":
+            indent -= 1
+            indented += "\n" + "  " * indent + ")"
+            i += 2
+        elif next_one == "\n":
+            indented += "\n" + "  " * indent
+            i += 1
+        else:
+            indented += query[i]
+            i += 1
+    
+    return indented

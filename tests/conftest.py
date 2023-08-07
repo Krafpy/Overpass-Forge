@@ -1,5 +1,5 @@
 import pytest
-from overpassforge.variables import VariableManager
+from overpassforge._variables import VariableManager
 
 @pytest.fixture
 def no_vars():

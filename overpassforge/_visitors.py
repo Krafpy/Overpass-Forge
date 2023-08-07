@@ -1,8 +1,9 @@
 from __future__ import annotations
-from .base import Statement, RawStatement
-from .variables import VariableManager
+from .base import Statement
+from .statements import RawStatement
+from ._variables import VariableManager
 from .base import QueryStatement
-from .utils import partition
+from ._utils import partition
 from .filters import Filter, Intersection
 from dataclasses import dataclass
 
@@ -71,14 +72,14 @@ class DependencyRetriever(Visitor):
         # If we are compiling raw statement, all of its
         # dependencies must be stored in variables
         if statement.__class__ is RawStatement:
-            for stmt in statement.dependencies:
+            for stmt in statement._dependencies:
                 if stmt not in self.deps:
                     self.deps[stmt] = Dependency(stmt, 0, True)
             return
         # Dependencies used by filters must always from variables
         if isinstance(statement, QueryStatement):
             for f in statement.filters:
-                for stmt in f.dependencies:
+                for stmt in f._dependencies:
                     if stmt not in self.deps:
                         self.deps[stmt] = Dependency(stmt, 0, True)
 
@@ -142,10 +143,10 @@ class Compiler(Visitor):
         # handled in each statement's compilation
 
         if statement == self.root:
-            self.sequence.append(statement.compile(self.variables))
+            self.sequence.append(statement._compile(self.variables))
         elif not self.deps[statement].can_inline:
             name_to = self.variables.add_statement(statement)
-            compiled = statement.compile(self.variables, name_to)
+            compiled = statement._compile(self.variables, name_to)
             self.sequence.append(compiled)
 
 
@@ -159,10 +160,10 @@ def traverse_statement(statement: Statement, visitor: Visitor, visited: set[Stat
     if visited is None:
         visited = set()
     
-    statement.accept_pre(visitor)
+    statement._accept_pre(visitor)
     if statement in visited:
         return
     visited.add(statement)
-    for child in statement.dependencies:
+    for child in statement._dependencies:
         traverse_statement(child, visitor, visited)
-    statement.accept_post(visitor)
+    statement._accept_post(visitor)

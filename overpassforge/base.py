@@ -14,11 +14,11 @@ from .filters import (
     Pivot,
     Polygon
 )
-from .variables import VariableManager
+from ._variables import VariableManager as _VariableManager
 from datetime import datetime
 
 if TYPE_CHECKING:
-    from .visitors import Visitor
+    from ._visitors import Visitor as _Visitor
     from .statements import Difference, Union, Areas
 
 
@@ -28,39 +28,43 @@ DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 
 class Statement:
-    """
-    Represents a generic Overpass QL statement.
-    """
+    """Represents a generic Overpass QL statement."""
 
     def __init__(self, label: str | None = None) -> None:
+        """
+        Args:
+            label: A label for this statement which may be used
+                as variable name for the result of this statement at compilation.
+        """
         self.out_options: list[set[str]] = []
         self.label = label
     
-    def accept_pre(self, visitor: Visitor):
-        """
-        Calls the appropriate visitor method when this statement is visited before
+    def _accept_pre(self, visitor: _Visitor):
+        """Calls the appropriate visitor method when this statement is visited before
         visiting it's dependencies.
         """
         visitor.visit_statement_pre(self)
 
-    def accept_post(self, visitor: Visitor):
-        """
-        Calls the appropriate visitor method after having visited this statement's
+    def _accept_post(self, visitor: _Visitor):
+        """Calls the appropriate visitor method after having visited this statement's
         dependencies.
         """
         visitor.visit_statement_post(self)
 
-    def _compile(self, vars: VariableManager, out_var: str | None = None) -> str:
-        """
-        Compiles the statement into its Overpass query string, without eventual
-        outputs.
+    def _compile_core(self, vars: _VariableManager, out_var: str | None = None) -> str:
+        """Compiles the statement into its Overpass query string, without additional
+        output statements.
+
+        Args:
+            vars: The variable manager at compile time
+            out_var: The name of the output variable where to
+                store the result of this statement
         """
         raise NotImplementedError("Must be implemented in subclass.")
     
     @property
-    def dependencies(self) -> list[Statement]:
-        """
-        The list of statements on which this statement depends on.
+    def _dependencies(self) -> list[Statement]:
+        """The list of statements on which this statement depends on (readonly)
         """
         raise NotImplementedError("Must be implemented in subclass.")
     
@@ -80,11 +84,15 @@ class Statement:
         Indicate that the result of this statement must be outputed.
 
         Args:
-            options: one or a combination of "ids", "skel", "body", "tags",
-            "meta", "noids", "geom", "bb", "center", "asc", "qt", "count" or
-            a bounding box (south,west,north,east)
+            options: None or any combination of "ids", "skel", "body", "tags",
+                "meta", "noids", "geom", "bb", "center", "asc", "qt", "count" or
+                a bounding box (south,west,north,east).
         
-        Returns: itself
+        Returns:
+            This same instance.
+        
+        Raises:
+            ValueError: Invalid output options.
         """
         extract = lambda item: item.strip().split(' ')
         valid_options: set[str] = set()
@@ -101,11 +109,18 @@ class Statement:
         self.out_options.append(valid_options)
         return self
     
-    def compile(self, vars: VariableManager, out_var: str | None = None) -> str:
+    def _compile(self, vars: _VariableManager, out_var: str | None = None) -> str:
+        """Compiles the statement into its Overpass query string, with its eventual outputs.
+
+        Args:
+            vars: The variable manager at compile time.
+            out_var: The name of the output variable where to store the result
+                of this statement.
+        
+        Returns:
+            The compiled statement string.
         """
-        Compiles the statement into its Overpass query string, with its outputs.
-        """
-        compiled = self._compile(vars, out_var)
+        compiled = self._compile_core(vars, out_var)
         if len(self.out_options) == 0:
             return compiled
         
@@ -123,74 +138,8 @@ class Statement:
         return f"<{self.__class__.__name__} \'{info}\'>"
 
 
-class RawStatement(Statement):
-    """
-    Represents a generic Overpass QL statement.
-    """
-
-    def __init__(self, raw: str = "", label: str | None = None, **dependencies: Statement) -> None:
-        """
-        Raw Overpass query string. It can be formated to support dependency
-        from other statements (raw or not). Placholders will be replaced
-        by the names of the variables where the dependencies output their
-        results.
-
-        Args:
-            raw (str): A formatable string of the query. Named placeholders
-            (e.g. "{name}") indicating dependency on other statements. An
-            optional special {:out_var} placeholder indicates where the name of
-            the output set must be placed.
-            **dependencies (Statement): the list of named statement on which
-            this statements depends on. The names must match the placeholders
-            in the raw query.
-        
-        Example:
-            ```python
-            >>> foo = Nodes().where(name="Foo")
-            >>> bar = Statement("node.{x}[amenity=\"bar\"]->.{:out_var};", x=foo)
-            >>> baz = Nodes(input_set=bar).within((50.6,7.0,50.8,7.3))
-            >>> print(build(baz))
-                node["name"="Foo"]->.set_0;
-                node.set_0[amenity="bar"]->.set_1;
-                node.set_1(50.6,7.0,50.8,7.3);
-            ```
-        """
-
-        super().__init__()
-
-        self._raw = raw
-        self._dependencies = dependencies
-        if "{}" in raw:
-            raise ValueError("All inserted dependencies must be named.")
-    
-    def _compile(self, vars: VariableManager, out_var: str | None = None) -> str:
-        """
-        Compiles the statement into its Overpass query string, without eventual
-        outputs.
-        """
-        var_names: dict[str, str] = {}
-        for name, stmt in self._dependencies.items():
-            if not vars.is_named(stmt):
-                raise RuntimeError("All inserted sets must use variables.")
-            var_names[name] = vars[stmt]
-        compiled = self._raw
-        if "{:out_var}" in self._raw:
-            compiled = compiled.replace("{:out_var}", out_var or "_")
-        elif out_var is not None:
-            raise RuntimeError("No output variable specified.")
-        return compiled.format(**var_names)
-    
-    @property
-    def dependencies(self) -> list[Statement]:
-        """
-        The list of statements on which this statement depends on.
-        """
-        return list(self._dependencies.values())
-
-
 class QueryStatement(Statement):
-    """
-    Represents a query statement, e.g. node, rel, way... Query statements always
+    """Represents a query statement, e.g. node, rel, way... Query statements always
     return a set that can be used as input to other statements/filters.
     """
 
@@ -233,24 +182,32 @@ class QueryStatement(Statement):
         for key, value in tags.items():
             self.filters.append(K(key) == V(value))
     
-    def filter(self, *args: Filter) -> QueryStatement:
+    def filter(self, *filters: Filter) -> QueryStatement:
+        """Adds filters to the statement/set.
+
+        Args:
+            filters: A list of filters.
         """
-        Adds filters to the statement/set.
-        """
-        return self.__class__(filters=[Intersection(self), *args])
+        return self.__class__(filters=[Intersection(self), *filters])
     
     def where(self, **tags: str) -> QueryStatement:
+        """Adds filters "key"="value".
+
+        Args:
+            tags: List of key="value".
         """
-        Adds filters "key"="value" on tags.
-        """
+
         filters: list[Filter] = [Intersection(self)]
         for key, value in tags.items():
             filters.append(K(key) == V(value))
         return self.__class__(filters=filters)
     
-    def within(self, area: tuple[float,float,float,float] | BoundingBox | Polygon | Area | 'Areas') -> QueryStatement:
-        """
-        Filters the elements that are in the specified area.
+    def within(self, area: tuple[float,float,float,float] | BoundingBox | Polygon | Area | Areas) -> QueryStatement:
+        """Filters the elements that are in the specified area.
+
+        Args:
+            area: A bounding box (filter object or as a tuple), polygon filter,
+                area filter or set of areas.
         """
         if isinstance(area, Filter):
             return self.__class__(filters=[Intersection(self), area])
@@ -260,36 +217,44 @@ class QueryStatement(Statement):
             return self.__class__(filters=[Intersection(self), Area(area)])
     
     def intersection(self, *others: Statement) -> QueryStatement:
-        """
-        Returns the statement computing the intersection of
-        this set with the others.
+        """Returns the statement computing the intersection of
+        this statement with the others.
+        
+        Args:
+            others: Other statements to intersect with
         """
         return self.__class__(filters=[Intersection(self, *others)])
     
     def changed_since(self, date: datetime) -> QueryStatement:
-        """
-        Filters the elements that were changed since the specified datetime.
+        """Filters the elements that were changed since the specified datetime.
+
+        Args:
+            date: The lower bound of change dates to consider
         """
         return self.__class__(filters=[Intersection(self), Newer(date)])
     
-    def changed_between(self, lower: datetime, higher: datetime) -> QueryStatement:
-        """
-        Filters the elements that were changed between the two specified dates.
-        """
-        return self.__class__(filters=[Intersection(self), Changed(lower, higher)])
-    
-    def last_changed_by(self, *users: str | int) -> QueryStatement:
-        """
-        Filters the elements that last changed by any of the given users.
+    def changed_between(self, lower: datetime, upper: datetime) -> QueryStatement:
+        """Filters the elements that were changed between the two specified dates.
 
         Args:
-            *users: the list of user names or user ids
+            lower (datetime): Lower bound datetime.
+            upper (datetime): Upper bound datetime.
+        """
+        return self.__class__(filters=[Intersection(self), Changed(lower, upper)])
+    
+    def last_changed_by(self, *users: str | int) -> QueryStatement:
+        """Filters the elements that last changed by any of the given users.
+
+        Args:
+            users: The list of user names or user ids.
         """
         return self.__class__(filters=[Intersection(self), User(*users)])
     
     def outlines_of(self, area: 'Areas') -> QueryStatement:
-        """
-        Filters the elements that are part of the outline of the given area.
+        """Filters the elements that are part of the outline of the given area.
+
+        Args:
+            area: The area to consider to outline of.
         """
         return self.__class__(filters=[Intersection(self), Pivot(area)])
     
@@ -299,22 +264,27 @@ class QueryStatement(Statement):
         lats: Iterable[float] | None = None, 
         lons: Iterable[float] | None = None
     ):
-        """
-        Filters elements that are within a given radius of the elements of another set
+        """Filters elements that are within a given radius of the elements of another set
         or a list of given coordinates (cannot specify both).
+
+        Args:
+            radius: The radius to consider around each element (in meters).
+            other: Another statement.
+            lats: List of latitude of points.
+            lons: List of longitudes of points.
         """
         around = Around(radius, other, lats, lons)
         return self.__class__(filters=[Intersection(self), around])
 
     @property
-    def dependencies(self) -> list[Statement]:
+    def _dependencies(self) -> list[Statement]:
         deps: list[Statement] = []
         for filt in self.filters:
-            deps.extend(filt.dependencies)
+            deps.extend(filt._dependencies)
         return deps
     
-    def _compile(self, vars: VariableManager, out_var: str | None = None) -> str:
-        comp_filter = lambda f: f.compile(vars)
+    def _compile_core(self, vars: _VariableManager, out_var: str | None = None) -> str:
+        comp_filter = lambda f: f._compile(vars)
         res = self._type_specifier + "".join(map(comp_filter, self.filters))
         if out_var is not None:
             return res + f"->.{out_var};"

@@ -12,7 +12,7 @@ class VariableManager:
         if stmt in self._var_names:
             return name_format.format(self._var_names[stmt])
         else:
-            return stmt.compile(self)
+            return stmt._compile(self)
 
     def add_statement(self, stmt: 'Statement') -> str:
         if stmt in self._var_names:
