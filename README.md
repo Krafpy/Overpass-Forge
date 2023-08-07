@@ -1,31 +1,38 @@
-# Overpass Query Builder
+# Overpass Forge: a query builder for Overpass query language
+
+An object-oriented model ton build Overpass queries in Python. Primarly intended
+to generate complex queries in Python.
 
 Requires **Python 3.10 or higher**.
 
-## Setup the development environment
+## Example
 
-### Windows
+```python
+from overpassforge import Areas, Nodes, Ways, build, beautify
 
-```cmd
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
+# Find both cinema nodes and ways in Bonn, which
+# are at most 100m away from bus stop nodes
+
+bus_stops = Nodes(within=Areas(name="Bonn"), highway="bus_stop")
+ways = Ways(around=(bus_stops, 100.0)).where(amenity="cinema")
+nodes = Nodes(around=(bus_stops, 100.0)).where(amenity="cinema")
+result = ways + nodes
+result.out("meta")
+
+query = build(result)
+print(beautify(query))
 ```
 
-### Linux
+Output:
 
-```cmd
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-```
-
-## Unit tests
-
-Run all the tests with:
-
-```cmd
-python -m pytest ./tests
+```text
+area["name"="Bonn"]->.set_0;
+node(area.set_0)["highway"="bus_stop"]->.set_1;
+(
+  way(around.set_1:100.0)["amenity"="cinema"];
+  node(around.set_1:100.0)["amenity"="cinema"];
+);
+out meta;
 ```
 
 ## Features
@@ -61,3 +68,31 @@ List of currently implemented features, based on the [Overpass QL wiki](https://
   - [x] By area (*area*)
   - [x] Area pivot (*pivot*)
   - [ ] Conditional query filter (*if:*)
+
+## Contribute
+
+### Setup the development environment
+
+#### Windows
+
+```cmd
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
+#### Linux
+
+```cmd
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+## Unit tests
+
+Run all the tests with:
+
+```cmd
+python -m pytest ./tests
+```
