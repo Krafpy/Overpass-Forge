@@ -83,7 +83,8 @@ class Statement:
 
     def _compile(self, vars: VariableManager, out_var: str | None = None) -> str:
         """
-        Compiles the statement into its Overpass query string.
+        Compiles the statement into its Overpass query string, without eventual
+        outputs.
         """
         var_names: dict[str, str] = {}
         for name, stmt in self._dependencies.items():
@@ -142,6 +143,9 @@ class Statement:
         return self
     
     def compile(self, vars: VariableManager, out_var: str | None = None) -> str:
+        """
+        Compiles the statement into its Overpass query string, with its outputs.
+        """
         compiled = self._compile(vars, out_var)
         if len(self.out_options) == 0:
             return compiled
