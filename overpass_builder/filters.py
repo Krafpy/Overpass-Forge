@@ -1,8 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Iterable
 from datetime import datetime
-
-from overpass_builder.variables import VariableManager
 from .variables import VariableManager
 from .utils import partition
 
