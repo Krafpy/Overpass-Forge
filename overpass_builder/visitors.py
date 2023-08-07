@@ -1,5 +1,5 @@
 from __future__ import annotations
-from .statements import Statement
+from .base import Statement, RawStatement
 from .variables import VariableManager
 from .base import QueryStatement
 from .utils import partition
@@ -70,7 +70,7 @@ class DependencyRetriever(Visitor):
 
         # If we are compiling raw statement, all of its
         # dependencies must be stored in variables
-        if statement.__class__ is Statement:
+        if statement.__class__ is RawStatement:
             for stmt in statement.dependencies:
                 if stmt not in self.deps:
                     self.deps[stmt] = Dependency(stmt, 0, True)

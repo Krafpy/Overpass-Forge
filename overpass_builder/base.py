@@ -32,40 +32,9 @@ class Statement:
     Represents a generic Overpass QL statement.
     """
 
-    def __init__(self, raw: str = "", **dependencies: Statement) -> None:
-        """
-        Raw Overpass query string. It can be formated to support dependency
-        from other statements (raw or not). Placholders will be replaced
-        by the names of the variables where the dependencies output their
-        results.
-
-        Args:
-            raw (str): A formatable string of the query. Named placeholders
-            (e.g. "{name}") indicating dependency on other statements. An
-            optional special {:out_var} placeholder indicates where the name of
-            the output set must be placed.
-            **dependencies (Statement): the list of named statement on which
-            this statements depends on. The names must match the placeholders
-            in the raw query.
-        
-        Example:
-            ```python
-            >>> foo = Nodes().where(name="Foo")
-            >>> bar = Statement("node.{x}[amenity=\"bar\"]->.{:out_var};", x=foo)
-            >>> baz = Nodes(input_set=bar).within((50.6,7.0,50.8,7.3))
-            >>> print(build(baz))
-                node["name"="Foo"]->.set_0;
-                node.set_0[amenity="bar"]->.set_1;
-                node.set_1(50.6,7.0,50.8,7.3);
-            ```
-        """
-        self._raw = raw
-        self._dependencies = dependencies
-        if "{}" in raw:
-            raise ValueError("All inserted dependencies must be named.")
-        
+    def __init__(self, label: str | None = None) -> None:
         self.out_options: list[set[str]] = []
-        self.label: str | None = None
+        self.label = label
     
     def accept_pre(self, visitor: Visitor):
         """
@@ -86,24 +55,14 @@ class Statement:
         Compiles the statement into its Overpass query string, without eventual
         outputs.
         """
-        var_names: dict[str, str] = {}
-        for name, stmt in self._dependencies.items():
-            if not vars.is_named(stmt):
-                raise RuntimeError("All inserted sets must use variables.")
-            var_names[name] = vars[stmt]
-        compiled = self._raw
-        if "{:out_var}" in self._raw:
-            compiled = compiled.replace("{:out_var}", out_var or "._")
-        elif out_var is not None:
-            raise RuntimeError("No output variable specified.")
-        return compiled.format(**var_names)
+        raise NotImplementedError("Must be implemented in subclass.")
     
     @property
     def dependencies(self) -> list[Statement]:
         """
         The list of statements on which this statement depends on.
         """
-        return list(self._dependencies.values())
+        raise NotImplementedError("Must be implemented in subclass.")
     
     def __hash__(self) -> int:
         return id(self)
@@ -162,6 +121,72 @@ class Statement:
     def __repr__(self) -> str:
         info = self.label if self.label else id(self)
         return f"<{self.__class__.__name__} \'{info}\'>"
+
+
+class RawStatement(Statement):
+    """
+    Represents a generic Overpass QL statement.
+    """
+
+    def __init__(self, raw: str = "", label: str | None = None, **dependencies: Statement) -> None:
+        """
+        Raw Overpass query string. It can be formated to support dependency
+        from other statements (raw or not). Placholders will be replaced
+        by the names of the variables where the dependencies output their
+        results.
+
+        Args:
+            raw (str): A formatable string of the query. Named placeholders
+            (e.g. "{name}") indicating dependency on other statements. An
+            optional special {:out_var} placeholder indicates where the name of
+            the output set must be placed.
+            **dependencies (Statement): the list of named statement on which
+            this statements depends on. The names must match the placeholders
+            in the raw query.
+        
+        Example:
+            ```python
+            >>> foo = Nodes().where(name="Foo")
+            >>> bar = Statement("node.{x}[amenity=\"bar\"]->.{:out_var};", x=foo)
+            >>> baz = Nodes(input_set=bar).within((50.6,7.0,50.8,7.3))
+            >>> print(build(baz))
+                node["name"="Foo"]->.set_0;
+                node.set_0[amenity="bar"]->.set_1;
+                node.set_1(50.6,7.0,50.8,7.3);
+            ```
+        """
+
+        super().__init__()
+
+        self._raw = raw
+        self._dependencies = dependencies
+        if "{}" in raw:
+            raise ValueError("All inserted dependencies must be named.")
+    
+    def _compile(self, vars: VariableManager, out_var: str | None = None) -> str:
+        """
+        Compiles the statement into its Overpass query string, without eventual
+        outputs.
+        """
+        var_names: dict[str, str] = {}
+        for name, stmt in self._dependencies.items():
+            if not vars.is_named(stmt):
+                raise RuntimeError("All inserted sets must use variables.")
+            var_names[name] = vars[stmt]
+        compiled = self._raw
+        if "{:out_var}" in self._raw:
+            compiled = compiled.replace("{:out_var}", out_var or "._")
+        elif out_var is not None:
+            raise RuntimeError("No output variable specified.")
+        return compiled.format(**var_names)
+    
+    @property
+    def dependencies(self) -> list[Statement]:
+        """
+        The list of statements on which this statement depends on.
+        """
+        return list(self._dependencies.values())
+
 
 class QueryStatement(Statement):
     """
