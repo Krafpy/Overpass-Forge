@@ -86,3 +86,12 @@ def test_with_area_filter():
         """node(area.set_0)["highway"="bus_stop"]->.set_1;\n""" \
         """(way(around.set_1:100.0)["amenity"="cinema"]; node(around.set_1:100.0)["amenity"="cinema"];);\n""" \
         """out meta;"""
+
+def test_chained_outs():
+    a = Nodes(amenity="cinema")
+    a.out("body")
+    a.out(" geom    skel")
+    assert build(a) == \
+        "node[\"amenity\"=\"cinema\"];\n" \
+        "out body;\n" \
+        "out geom skel;"

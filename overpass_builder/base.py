@@ -64,7 +64,7 @@ class Statement:
         if "{}" in raw:
             raise ValueError("All inserted dependencies must be named.")
         
-        self.out_options: set[str] | None = None
+        self.out_options: list[set[str]] = []
         self.label: str | None = None
     
     def accept_pre(self, visitor: Visitor):
@@ -138,19 +138,22 @@ class Statement:
             else:
                 valid_options.add(str(item))
         
-        self.out_options = valid_options
+        self.out_options.append(valid_options)
         return self
     
     def compile(self, vars: VariableManager, out_var: str | None = None) -> str:
         compiled = self._compile(vars, out_var)
-        if self.out_options is None:
+        if len(self.out_options) == 0:
             return compiled
+        
+        outs = []
         var = vars.get(self)
-        opts = self.out_options
-        out = f".{var} out" if var is not None else "out"
-        out += (" " + " ".join(sorted(opts))) if len(opts) > 0 else ""
-        out += ";"
-        return compiled + "\n" + out
+        for opts in self.out_options:
+            out = f".{var} out" if var is not None else "out"
+            out += (" " + " ".join(sorted(opts))) if len(opts) > 0 else ""
+            out += ";"
+            outs.append(out)
+        return compiled + "\n" + "\n".join(outs)
     
     def __repr__(self) -> str:
         info = self.label if self.label else id(self)

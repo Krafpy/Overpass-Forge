@@ -52,7 +52,7 @@ class Dependency:
     
     @property
     def can_inline(self):
-        return not self.no_inline and self.ref_count <= 1 and self.statement.out_options is None
+        return not self.no_inline and self.ref_count <= 1 and len(self.statement.out_options) == 0
 
 class DependencyRetriever(Visitor):
     """
