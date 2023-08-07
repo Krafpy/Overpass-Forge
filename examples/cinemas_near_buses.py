@@ -3,7 +3,7 @@ currentdir = os.path.dirname(os.path.realpath(__file__))
 parentdir = os.path.dirname(currentdir)
 sys.path.append(parentdir)
 
-from overpass_builder import Areas, Nodes, Ways, beautify, build
+from overpassforge import Areas, Nodes, Ways, beautify, build
 
 # Find both cinema nodes and ways in Bonn, which are at most 100m away from bus stop nodes"""
 

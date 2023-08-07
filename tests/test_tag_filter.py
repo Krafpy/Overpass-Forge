@@ -1,4 +1,4 @@
-from overpass_builder.filters import Tag, K, V
+from overpassforge.filters import Tag, K, V
 
 def test_equal(no_vars):
     assert (K("amenity") == V("cinema")).compile(no_vars) == """["amenity"="cinema"]"""

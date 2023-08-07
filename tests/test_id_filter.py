@@ -1,4 +1,4 @@
-from overpass_builder.filters import Ids
+from overpassforge.filters import Ids
 
 def test_no_ids(no_vars):
     assert Ids().compile(no_vars) == ""

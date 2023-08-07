@@ -1,6 +1,6 @@
-from overpass_builder.builder import build
-from overpass_builder.statements import Nodes, Difference, Union, Areas, Ways
-from overpass_builder.base import RawStatement
+from overpassforge.builder import build
+from overpassforge.statements import Nodes, Difference, Union, Areas, Ways
+from overpassforge.base import RawStatement
 
 def test_no_dependencies_1():
     assert build(Nodes().where(amenity="restaurant")) == \

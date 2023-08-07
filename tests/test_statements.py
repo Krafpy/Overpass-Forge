@@ -1,5 +1,5 @@
-from overpass_builder.statements import Nodes, Ways, Relations, Areas, Difference, Union
-from overpass_builder.variables import VariableManager
+from overpassforge.statements import Nodes, Ways, Relations, Areas, Difference, Union
+from overpassforge.variables import VariableManager
 import pytest
 
 @pytest.fixture

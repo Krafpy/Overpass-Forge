@@ -1,6 +1,6 @@
-from overpass_builder.filters import BoundingBox, Newer, Changed, User, Area, Pivot, Polygon
-from overpass_builder.statements import Areas
-from overpass_builder.variables import VariableManager
+from overpassforge.filters import BoundingBox, Newer, Changed, User, Area, Pivot, Polygon
+from overpassforge.statements import Areas
+from overpassforge.variables import VariableManager
 from datetime import datetime
 
 def test_bounding_box(no_vars):

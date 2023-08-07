@@ -1,6 +1,6 @@
-from overpass_builder.filters import Intersection
-from overpass_builder.statements import Statement
-from overpass_builder.variables import VariableManager
+from overpassforge.filters import Intersection
+from overpassforge.statements import Statement
+from overpassforge.variables import VariableManager
 import pytest
 
 def test_one_intersections():

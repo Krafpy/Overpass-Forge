@@ -1,7 +1,7 @@
 import pytest
-from overpass_builder.filters import Around
-from overpass_builder.base import Statement
-from overpass_builder.variables import VariableManager
+from overpassforge.filters import Around
+from overpassforge.base import Statement
+from overpassforge.variables import VariableManager
 
 def test_too_many_attributes():
     a = Statement()

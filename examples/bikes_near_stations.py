@@ -3,7 +3,7 @@ currentdir = os.path.dirname(os.path.realpath(__file__))
 parentdir = os.path.dirname(currentdir)
 sys.path.append(parentdir)
 
-from overpass_builder import Areas, Nodes, beautify, build
+from overpassforge import Areas, Nodes, beautify, build
 
 # Find all bike rental stations in San Francisco within 50 meters of a railway station
 
