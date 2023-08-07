@@ -75,7 +75,7 @@ List of currently implemented features, based on the [Overpass QL wiki](https://
   - [x] Area pivot (*pivot*)
   - [ ] Conditional query filter (*if:*)
 
-## Contribute
+## Contributing
 
 ### Setup the development environment
 
@@ -95,7 +95,7 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-## Unit tests
+### Unit tests
 
 Run all the tests with:
 
