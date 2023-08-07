@@ -1,6 +1,6 @@
 # Overpass Forge: a query builder for the Overpass query language
 
-An object-oriented model ton build Overpass queries in Python. Primarly intended
+An object-oriented model to build Overpass queries in Python. Primarly intended
 to generate complex queries in Python.
 
 Requires **Python 3.10 or higher**.
