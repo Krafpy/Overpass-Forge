@@ -197,7 +197,8 @@ class QueryStatement(Statement):
     _type_specifier: str = "<Unspecified>"
     
     def __init__(self,
-        ids: Iterable[int] | int | None = None, *,
+        ids: Iterable[int] | int | None = None,
+        label: str | None = None, *,
         bounding_box: tuple[float, float, float, float] | None = None,
         input_set: Statement | None = None,
         within: Areas | None = None,
@@ -206,7 +207,7 @@ class QueryStatement(Statement):
         **tags: str
     ) -> None:
         
-        super().__init__()
+        super().__init__(label)
 
         self.filters = list(filters)
 

@@ -106,3 +106,16 @@ def test_consecutive_builds():
     assert build(u) == \
         """node["name"="Foo"]->.set_0;\n""" \
         """(.set_0; node.set_0["name"="Bar"];);"""
+
+def test_labelled_statements():
+    a = Areas(name="Foo", label="a")
+    u = Union(Nodes(within=a), Ways(within=a), label="union")
+    u.out()
+    d = Difference(a, u, "result") # Label will be ignored as it is the last statement
+    d.out()
+    assert build(d) == \
+        """area["name"="Foo"]->.a;\n""" \
+        """(node(area.a); way(area.a);)->.union;\n""" \
+        """.union out;\n""" \
+        """(.a; - .union;);\n""" \
+        """out;"""

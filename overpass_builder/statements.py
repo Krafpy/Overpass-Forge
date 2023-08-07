@@ -22,11 +22,11 @@ class Union(BlockStatement):
     """
     Represents a union of statements: `(statement_1; statement_2; …);`
     """
-    def __init__(self, *statements: Statement) -> None:
+    def __init__(self, *statements: Statement, label: str | None = None) -> None:
         """
         Builds the union of the listed statements.
         """
-        super().__init__()
+        super().__init__(label)
         self.statements = list(statements)
     
     @property
@@ -46,11 +46,11 @@ class Difference(BlockStatement):
     """
     Represents the difference of two statements: `(statement_1 - statement_2;);`
     """
-    def __init__(self, a: Statement, b: Statement) -> None:
+    def __init__(self, a: Statement, b: Statement, label: str | None = None) -> None:
         """
         Builds the difference of the two statements `(a; - b;)`;
         """
-        super().__init__()
+        super().__init__(label)
         self.a = a
         self.b = b
     

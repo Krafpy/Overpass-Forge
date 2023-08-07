@@ -17,7 +17,10 @@ class VariableManager:
     def add_statement(self, stmt: 'Statement') -> str:
         if stmt in self._var_names:
             raise RuntimeError(f"Trying to name an already named statement: {stmt}.")
+        
         name = f"set_{self._next_id}"
+        if stmt.label is not None and stmt.label not in self._var_names.values():
+            name = stmt.label
         self._var_names[stmt] = name
         self._next_id += 1
         return name
