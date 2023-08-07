@@ -3,7 +3,13 @@
 An object-oriented model to build Overpass queries in Python. Primarly intended
 to generate complex queries in Python.
 
-Requires **Python 3.10 or higher**.
+## Install
+
+Requires **Python 3.10 or higher**. Install with:
+
+```cmd
+pip install overpassforge
+```
 
 ## Example
 
