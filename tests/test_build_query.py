@@ -95,3 +95,13 @@ def test_chained_outs():
         "node[\"amenity\"=\"cinema\"];\n" \
         "out body;\n" \
         "out geom skel;"
+
+def test_consecutive_builds():
+    # This test fail if the compilation modifies the statements in-place
+    a = Nodes(name="Foo")
+    b = Nodes(input_set=a, name="Bar")
+    u = a + b
+    assert build(b) == """node["name"="Foo"]["name"="Bar"];"""
+    assert build(u) == \
+        """node["name"="Foo"]->.set_0;\n""" \
+        """(.set_0; node.set_0["name"="Bar"];);"""

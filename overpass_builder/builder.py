@@ -5,6 +5,7 @@ from .base import DATE_FORMAT
 from dataclasses import dataclass
 from typing import Literal
 from datetime import datetime
+import copy
 
 @dataclass
 class Settings:
@@ -72,6 +73,7 @@ def build(statement: Statement, settings: Settings | None = None):
     Builds the Overpass query string of the given statement, with
     the optional global settings.
     """
+    statement = copy.deepcopy(statement)
     traverse_statement(statement, CycleDetector())
     dependencies = DependencyRetriever()
     traverse_statement(statement, dependencies)
