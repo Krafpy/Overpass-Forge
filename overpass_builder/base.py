@@ -175,7 +175,7 @@ class RawStatement(Statement):
             var_names[name] = vars[stmt]
         compiled = self._raw
         if "{:out_var}" in self._raw:
-            compiled = compiled.replace("{:out_var}", out_var or "._")
+            compiled = compiled.replace("{:out_var}", out_var or "_")
         elif out_var is not None:
             raise RuntimeError("No output variable specified.")
         return compiled.format(**var_names)
