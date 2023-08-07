@@ -321,4 +321,5 @@ class QueryStatement(Statement):
 
 
 class BlockStatement(Statement):
+    """Represents a block statement, i.e. a statement which acts on multiple statements."""
     pass
