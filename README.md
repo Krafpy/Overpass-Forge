@@ -1,4 +1,4 @@
-# Overpass Forge: a query builder for Overpass query language
+# Overpass Forge: a query builder for the Overpass query language
 
 An object-oriented model ton build Overpass queries in Python. Primarly intended
 to generate complex queries in Python.
