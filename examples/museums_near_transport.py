@@ -1,6 +1,6 @@
-from overpassforge import Areas, Nodes, Ways, Union, Around, beautify, build, Settings
-
-# Find Museums in Paris with nearby transportation within 50 Meters
+from overpassforge import (
+    Areas, Nodes, Ways, Union, Around, beautify, build, Settings
+)
 
 paris = Areas(name="Paris")
 museums = Union(

@@ -1,7 +1,5 @@
 from overpassforge import Areas, Nodes, beautify, build
 
-# Find all bike rental stations in San Francisco within 50 meters of a railway station
-
 sf = Areas(name="San Francisco")
 bike_rental = Nodes(within=sf).where(amenity="bicycle_rental")
 stations = Nodes(around=(bike_rental, 50)).where(railway="station")
