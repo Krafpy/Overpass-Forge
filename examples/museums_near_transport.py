@@ -1,8 +1,3 @@
-import os, sys
-currentdir = os.path.dirname(os.path.realpath(__file__))
-parentdir = os.path.dirname(currentdir)
-sys.path.append(parentdir)
-
 from overpassforge import Areas, Nodes, Ways, Union, Around, beautify, build, Settings
 
 # Find Museums in Paris with nearby transportation within 50 Meters
