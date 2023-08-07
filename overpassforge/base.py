@@ -260,7 +260,7 @@ class QueryStatement(Statement):
     
     def around(self,
         radius: float,
-        other: Statement | None,
+        other: Statement | None = None,
         lats: Iterable[float] | None = None, 
         lons: Iterable[float] | None = None
     ):
