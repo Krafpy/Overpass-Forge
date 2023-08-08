@@ -12,7 +12,7 @@ class CompilationError(Exception):
         self.statement = statement
 
 class CircularDependencyError(CompilationError):
-    """Raise when a statement depending on its own result is detected
+    """Raised when a statement depending on its own result is detected
     during query build.
     
     Attributes:
