@@ -1,5 +1,6 @@
 from overpassforge.statements import Nodes, Union, Difference
-from overpassforge._visitors import CycleDetector, CircularDependencyError, DependencyRetriever, traverse_statement
+from overpassforge._visitors import CycleDetector, DependencyRetriever, traverse_statement
+from overpassforge.errors import CircularDependencyError
 import pytest
 
 def test_no_cycles():

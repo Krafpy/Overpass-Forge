@@ -5,6 +5,7 @@ from ._variables import VariableManager
 from .base import QueryStatement
 from ._utils import partition
 from .filters import Filter, Intersection
+from .errors import CircularDependencyError
 from dataclasses import dataclass
 
 
@@ -19,10 +20,6 @@ class Visitor:
         pass
 
 
-class CircularDependencyError(Exception):
-    """Raised when a circular dependency is detected."""
-    pass
-
 class CycleDetector(Visitor):
     """
     A visitor to detected cycles in a statement's dependency,
@@ -36,7 +33,7 @@ class CycleDetector(Visitor):
         if statement not in self.visiting:
             self.visiting[statement] = True
         elif self.visiting[statement]:
-            raise CircularDependencyError
+            raise CircularDependencyError(statement)
     
     def visit_statement_post(self, statement: Statement):
         self.visiting[statement] = False
