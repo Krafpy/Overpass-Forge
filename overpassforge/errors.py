@@ -1,6 +1,17 @@
 from .base import Statement
 
-class CircularDependencyError(Exception):
+class CompilationError(Exception):
+    """Raised when an error is detected when building a statement.
+    
+    Attributes:
+        statement: The statement which caused the compile error.
+    """
+
+    def __init__(self, msg: str, statement: Statement | None = None) -> None:
+        super().__init__(msg)
+        self.statement = statement
+
+class CircularDependencyError(CompilationError):
     """Raise when a statement depending on its own result is detected
     during query build.
     
@@ -10,5 +21,4 @@ class CircularDependencyError(Exception):
     """
 
     def __init__(self, statement: Statement | None = None) -> None:
-        super().__init__(f"A statement depends on its own result.")
-        self.statement = statement
+        super().__init__("A statement depends on its own result.", statement)
