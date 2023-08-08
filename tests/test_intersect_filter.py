@@ -1,6 +1,7 @@
 from overpassforge.filters import Intersection
 from overpassforge.statements import Statement
 from overpassforge._variables import VariableManager
+from overpassforge.errors import InvalidFilterAttributes
 import pytest
 
 def test_one_intersections():
@@ -25,3 +26,7 @@ def test_requires_variable():
 
     with pytest.raises(KeyError):
         Intersection(a, b)._compile(vars)
+
+def test_empty_intersection(no_vars):
+    with pytest.raises(InvalidFilterAttributes):
+        Intersection()._compile(no_vars)

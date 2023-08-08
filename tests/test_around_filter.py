@@ -1,17 +1,18 @@
 import pytest
 from overpassforge.filters import Around
 from overpassforge.base import Statement
+from overpassforge.statements import Nodes
 from overpassforge._variables import VariableManager
+from overpassforge.errors import InvalidFilterAttributes
 
-def test_too_many_attributes():
+def test_too_many_attributes(no_vars):
     a = Statement()
-    vars = VariableManager()
-    with pytest.raises(AttributeError):
-        Around(100.0, a, [10.0], [10.0])._compile(vars)
+    with pytest.raises(InvalidFilterAttributes):
+        Around(100.0, a, [10.0], [10.0])._compile(no_vars)
 
-def test_no_attributes():
-    with pytest.raises(AttributeError):
-        Around(100.0)._compile(VariableManager())
+def test_no_attributes(no_vars):
+    with pytest.raises(InvalidFilterAttributes):
+        Around(100.0)._compile(no_vars)
 
 def test_around_set():
     a = Statement()

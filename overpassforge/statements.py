@@ -1,6 +1,7 @@
 from __future__ import annotations
 from .base import Statement, QueryStatement, BlockStatement
 from ._variables import VariableManager as _VariableManager
+from .errors import UnexpectedCompilationError
 
 
 class RawStatement(Statement):
@@ -46,13 +47,13 @@ class RawStatement(Statement):
         var_names: dict[str, str] = {}
         for name, stmt in self._dependency_list.items():
             if not vars.is_named(stmt):
-                raise RuntimeError("All inserted sets must use variables.")
+                raise UnexpectedCompilationError("All inserted sets must use variables.")
             var_names[name] = vars[stmt]
         compiled = self._raw
         if "{:out_var}" in self._raw:
             compiled = compiled.replace("{:out_var}", out_var or "_")
         elif out_var is not None:
-            raise RuntimeError("No output variable specified.")
+            raise UnexpectedCompilationError("No output variable specified.")
         return compiled.format(**var_names)
     
     @property

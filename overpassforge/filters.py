@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Iterable
 from datetime import datetime
 from ._variables import VariableManager as _VariableManager
 from ._utils import partition
+from .errors import InvalidFilterAttributes
 
 if TYPE_CHECKING:
     from .base import Statement
@@ -195,7 +196,7 @@ class Intersection(Filter):
     
     def _compile(self, vars: _VariableManager) -> str:
         if len(self.statements) == 0:
-            raise AttributeError("Empty intersection.")
+            raise InvalidFilterAttributes("Empty intersection.")
         names: list[str] = []
         for stmt in self.statements:
             names.append(vars[stmt])
@@ -256,7 +257,7 @@ class User(Filter):
             users: A list of user names or user ids.
         
         Raises:
-            ValueError: No used specified.
+            ValueError: No user specified.
         """
         if len(users) == 0:
             raise ValueError("Must list at least one user.")
@@ -343,7 +344,7 @@ class Around(Filter):
     
     def _compile(self, vars: _VariableManager) -> str:
         if self.input_set is not None and (self.lats is not None or self.lons is not None):
-            raise AttributeError("Cannot use both coordinates and input set.")
+            raise InvalidFilterAttributes("Cannot use both coordinates and input set.")
         
         if self.input_set is not None:
             return f"(around.{vars[self.input_set]}:{self.radius})"
@@ -354,7 +355,7 @@ class Around(Filter):
                 latlons.append(str(lon))
             return f"(around:{self.radius},{','.join(latlons)})"
         
-        raise AttributeError("Input set or coordinates not defined.")
+        raise InvalidFilterAttributes("Input set or coordinates not defined.")
 
 class Polygon(Filter):
     """Filters all elements that are inside the defined polygon."""

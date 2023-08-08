@@ -6,6 +6,7 @@ from ._visitors import Compiler as _Compiler
 from ._visitors import DependencyRetriever as _DependencyRetriever
 from ._visitors import DependencySimplifier as _DependencySimplifier
 from .base import DATE_FORMAT
+from .errors import InvalidQuerySettings
 from dataclasses import dataclass
 from typing import Literal
 from datetime import datetime
@@ -35,7 +36,7 @@ class Settings:
         
         if self.out == "csv":
             if self.csv_fields is None:
-                raise AttributeError("Must specify CSV fields when out:csv.")
+                raise InvalidQuerySettings("Must specify CSV fields when out:csv.")
             frmt = lambda f: "\"{}\"".format(f.strip(' \"\''))
             header = ','.join(map(frmt, self.csv_fields))
             if self.csv_header_line:
@@ -50,7 +51,7 @@ class Settings:
         
         if self.timeout is not None:
             if self.timeout <= 0:
-                raise ValueError("Timeout cannot be a negative integer.")
+                raise InvalidQuerySettings("Timeout cannot be a negative integer.")
             add(f"timeout:{self.timeout}")
         
         if self.maxsize is not None:
@@ -87,8 +88,9 @@ def build(statement: Statement, settings: Settings | None = None) -> str:
 
     Raises:
         CircularDependencyError: One of the substatements requires its own result.
-        AttributeError: Invalid (sub)statement.
-        RuntimeError: Unexpected internal compilation error.
+        InvalidFilterAttributes: Invalid filter.
+        InvalidQuerySettings: Invalid query settings.
+        UnexpectedCompilationError: Unexpected internal compilation error.
     """
     statement = copy.deepcopy(statement)
     _traverse(statement, _CycleDetector())
