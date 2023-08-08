@@ -1,5 +1,6 @@
 from overpassforge.builder import build
 from overpassforge.statements import RawStatement, Nodes, Difference, Union, Areas, Ways
+from overpassforge.filters import Key, Regex
 
 def test_no_dependencies_1():
     assert build(Nodes().where(amenity="restaurant")) == \
@@ -10,6 +11,14 @@ def test_no_dependencies_2():
     b = Nodes(bounding_box=(42.0, 43.0, 44.0, 45.0))
     u1 = Union(a, b)
     assert build(u1) == """(node(128); node(42.0,43.0,44.0,45.0););"""
+
+def test_complex_tag_filtering():
+    a = Nodes().where(Regex("^addr:.*$"), name=Regex("^Foo.*$"))
+    tag = Key("opening_hours") != Regex(".*mo.*")
+    tag.case_sensitive = False
+    a = a.filter(tag)
+    assert build(a) == \
+        """node[~"^addr:.*$"]["name"~"^Foo.*$"]["opening_hours"!~".*mo.*",i];"""
 
 def test_one_dependency():
     a = Nodes(ids=128)

@@ -4,6 +4,7 @@ from .filters import (
     Filter,
     BoundingBox,
     Ids,
+    Regex,
     Key,
     Intersection,
     Newer,
@@ -190,14 +191,17 @@ class QueryStatement(Statement):
         """
         return self.__class__(filters=[Intersection(self), *filters])
     
-    def where(self, **tags: str) -> QueryStatement:
-        """Adds filters "key"="value".
+    def where(self, *keys: str | Regex, **tags: str | Regex) -> QueryStatement:
+        """Adds filters "key", ~"key", "key"="value", or "key"~"value".
 
         Args:
-            tags: List of key="value".
+            keys: List of keys the elements must have
+            tags: List of key="value" tags the elements must have.
         """
 
         filters: list[Filter] = [Intersection(self)]
+        for key in keys:
+            filters.append(Key(key))
         for key, value in tags.items():
             filters.append(Key(key) == value)
         return self.__class__(filters=filters)
