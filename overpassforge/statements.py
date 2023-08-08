@@ -32,7 +32,7 @@ class RawStatement(Statement):
             ValueError: Missing dependency for placeholder.
         """
 
-        super().__init__()
+        super().__init__(label)
 
         self._raw = raw
         self._dependency_list = dependencies

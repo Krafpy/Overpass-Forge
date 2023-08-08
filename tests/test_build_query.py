@@ -118,3 +118,12 @@ def test_labelled_statements():
         """.union out;\n""" \
         """(.a; - .union;);\n""" \
         """out;"""
+
+def test_labelled_raw_statement():
+    a = RawStatement("node[name=\"Foo\"]->.{:out_var};", label="raw_statement")
+    b = Nodes(amenity="cinema").intersection(a)
+    b.out()
+    assert build(b) == \
+        """node[name="Foo"]->.raw_statement;\n""" \
+        """node["amenity"="cinema"].raw_statement;\n""" \
+        """out;"""
