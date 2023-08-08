@@ -7,7 +7,7 @@ exclude = ["examples/"]
 
 [project]
 name = "overpassforge"
-version = "0.2"
+version = "0.2.1"
 authors = [
   { name="Krafpy", email="krafpy@gmail.com" },
 ]
@@ -23,3 +23,4 @@ classifiers = [
 [project.urls]
 "Homepage" = "https://github.com/Krafpy/Overpass-Forge"
 "Bug Tracker" = "https://github.com/Krafpy/Overpass-Forge/issues"
+"Documentation" = "https://overpass-forge.readthedocs.io/en/latest"
