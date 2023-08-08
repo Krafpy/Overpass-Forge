@@ -4,7 +4,7 @@ from .filters import (
     Filter,
     BoundingBox,
     Ids,
-    K, V,
+    Key,
     Intersection,
     Newer,
     Changed,
@@ -180,7 +180,7 @@ class QueryStatement(Statement):
             self.filters.append(Around(around[1], around[0]))
         
         for key, value in tags.items():
-            self.filters.append(K(key) == V(value))
+            self.filters.append(Key(key) == value)
     
     def filter(self, *filters: Filter) -> QueryStatement:
         """Adds filters to the statement/set.
@@ -199,7 +199,7 @@ class QueryStatement(Statement):
 
         filters: list[Filter] = [Intersection(self)]
         for key, value in tags.items():
-            filters.append(K(key) == V(value))
+            filters.append(Key(key) == value)
         return self.__class__(filters=filters)
     
     def within(self, area: tuple[float,float,float,float] | BoundingBox | Polygon | Area | Areas) -> QueryStatement:

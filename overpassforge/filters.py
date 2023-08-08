@@ -32,14 +32,25 @@ class Filter:
 
 
 
+class Regex:
+    """Wrapper around a string to indicate it should be treated as a regex."""
+
+    def __init__(self, pattern: str) -> None:
+        self.pattern = pattern
+    
+    def __str__(self) -> str:
+        return self.pattern
+    
+    def __repr__(self) -> str:
+        return f"<Regex \"{self.pattern}\">"
+
 class Tag(Filter):
-    """
-    Represents a tag (key-value pair) filter.
-    """
+    """Represents a generic tag filter."""
+
     def __init__(self, comparison: str, case_sensitive=True):
         """
         Args:
-            comparison: the comparison expression of the tag filter
+            comparison: the comparison expression string of the tag filter
                 (e.g. "name"="Foo", !"tourism")
             case_sensitive: ignore case (e.g. if comparison is "name"="Foo"
                 then a tag "name"="fOO" is also valid)
@@ -48,82 +59,57 @@ class Tag(Filter):
         self.case_sensitive = case_sensitive
     
     def _compile(self, vars: _VariableManager) -> str:
-        ending = "]" if self.case_sensitive else ",i]"
-        return f"[{self.comparison}{ending}"
-    
-    @staticmethod
-    def has(key: str):
-        """Returns the filter "has key", i.e. ["key"]"""
-        return Tag(f"\"{key}\"")
-    
-    @staticmethod
-    def hasnot(key: str):
-        """Returns the filter "has not key", i.e. [!"key"]"""
-        return Tag(f"!\"{key}\"")
-    
-    def __repr__(self) -> str:
-        return f"<Tag {self.comparison}, case_sensitive={self.case_sensitive}>"
-
-class V:
-    """
-    Represents the value of a tag.
-    """
-    def __init__(self, expr: str, regex=False):
-        """
-        Args:
-            expr: the value string
-            regex: wether the string is a regex
-        """
-        self.expr = expr
-        self.regex = regex
+        return f"[{self.__str__()}]"
     
     def __str__(self) -> str:
-        if self.regex:
-            return f"~\"{self.expr}\""
-        return f"=\"{self.expr}\""
+        ending = "" if self.case_sensitive else ",i"
+        return f"{self.comparison}{ending}"
+    
+    def __repr__(self) -> str:
+        return f"<Tag {self.comparison}, case={self.case_sensitive}>"
 
-class K:
+class Key(Tag):
     """
-    Represents the key of a tag. Used to build a tag filter expression.
+    Represents a key of an element's tags. Used to build tag filter expressions.
 
     Examples:
 
-    >>> K("amenity") == V("cinema")
-    <Tag "amenity"="cinema", case_sensitive=True>
-    >>> K("amenity") == "cinema"
-    <Tag "amenity"="cinema", case_sensitive=True>
-    >>> K("amenity") != V("bar")
-    <Tag "amenity"!="bar", case_sensitive=True>
-    >>> K("amenity") != "bar"
-    <Tag "amenity"!="bar", case_sensitive=True>
-    >>> K("name") == V("^Foo$", regex=True)
-    <Tag "name"~"^Foo$", case_sensitive=True>
-    >>> K("^addr:.*$", regex=True) == V("^Foo$", regex=True)
-    <Tag ~"^addr:.*$"~"^Foo$", case_sensitive=True>
+    >>> Key("amenity")
+    <Tag "amenity", case=True>
+    >>> ~Key("amenity")
+    <Tag !"amenity", case=True>
+    >>> Key("amenity") == "cinema"
+    <Tag "amenity"="cinema", case=True>
+    >>> Key("name", case_sensitive=False) == Regex("^Foo$")
+    <Tag "name"~"^Foo$", case=False>
+    >>> Key(Regex("^addr:.*$")) != Regex("^Foo$")
+    <Tag ~"^addr:.*$"!~"^Foo$", case=True>
     """
-    def __init__(self, expr: str, regex=False):
+
+    def __init__(self, key: str | Regex, case_sensitive=True):
         """
         Args:
-            expr: the key string
-            regex: wether the string is a regex
+            key: The key string.
         """
-        self.expr = expr
-        self.regex = regex
+        if isinstance(key, Regex):
+            super().__init__(f"~\"{key}\"", case_sensitive)
+        else:
+            super().__init__(f"\"{key}\"",  case_sensitive)
     
-    def __str__(self) -> str:
-        if self.regex:
-            return f"~\"{self.expr}\""
-        return f"\"{self.expr}\""
-
-    def __eq__(self, value: V | str):
-        if isinstance(value, str):
-            value = V(value)
-        return Tag(f"{self}{value}")
+    def __eq__(self, value: str | Regex) -> Tag:
+        case = self.case_sensitive
+        if isinstance(value, Regex):
+            return Tag(f"{self.comparison}~\"{value}\"", case)
+        return Tag(f"{self.comparison}=\"{value}\"", case)
     
-    def __ne__(self, value: V | str):
-        if isinstance(value, str):
-            value = V(value)
-        return Tag(f"{self}!{value}")
+    def __ne__(self, value: str | Regex) -> Tag:
+        case = self.case_sensitive
+        if isinstance(value, Regex):
+            return Tag(f"{self.comparison}!~\"{value}\"", case)
+        return Tag(f"{self.comparison}!=\"{value}\"", case)
+    
+    def __invert__(self) -> Tag:
+        return Tag(f"!{self.comparison}", self.case_sensitive)
 
 
 class BoundingBox(Filter):
