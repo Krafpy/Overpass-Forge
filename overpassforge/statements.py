@@ -29,7 +29,7 @@ class RawStatement(Statement):
                 Their keyword names must match the placeholders in the raw query string.
         
         Raises:
-            ValueError: Missing dependency for placeholder.
+            ValueError: Invalid unamed placholder "{}".
         """
 
         super().__init__(label)
