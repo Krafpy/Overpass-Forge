@@ -103,6 +103,7 @@ class Union(BlockStatement):
     >>> print(build(union))
     (way(42); node(42));
     >>> union = Ways(42) + Nodes(42)
+    >>> print(build(union))
     (way(42); node(42));
     """
     def __init__(self, *statements: Statement, label: str | None = None) -> None:
