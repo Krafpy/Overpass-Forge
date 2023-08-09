@@ -1,13 +1,12 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=61.0", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
 
-[tool.hatch.build]
-exclude = ["examples/"]
+[tool.setuptools_scm]
 
 [project]
 name = "overpassforge"
-version = "0.2.1"
+dynamic = ["version"]
 authors = [
   { name="Krafpy", email="krafpy@gmail.com" },
 ]
