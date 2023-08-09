@@ -44,7 +44,7 @@ class Settings:
             else:
                 header += f"; false"
             if self.csv_separator is not None:
-                header += f"; {self.csv_separator}"
+                header += f"; \"{self.csv_separator}\""
             add(f"out:csv({header})")
         else:
             add(f"out:{self.out}")
