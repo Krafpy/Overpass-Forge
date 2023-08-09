@@ -1,6 +1,7 @@
 # Overpass Forge: a query builder for the Overpass query language
 
 [![PyPI latest version](https://img.shields.io/pypi/v/overpassforge)](https://pypi.org/project/overpassforge/)
+![License](https://img.shields.io/github/license/Krafpy/Overpass-Forge)
 [![Documentation status](https://readthedocs.org/projects/overpassforge/badge/?version=latest)](https://overpassforge.readthedocs.io/en/latest/?badge=latest)
 ![CI tests](https://github.com/Krafpy/Overpass-Forge/actions/workflows/ci.yml/badge.svg)
 
