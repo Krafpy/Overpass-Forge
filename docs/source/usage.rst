@@ -78,7 +78,7 @@ of ``Filter`` instances as arguments:
 
     paris = Areas(name="Paris")
     nodes = Nodes().filter(
-        Area(paris), Tag.has("amenity"), Changed(datetime(2017, 11, 19)))
+        Area(paris), Key("amenity"), Changed(datetime(2017, 11, 19)))
 
 .. code-block:: text
 
