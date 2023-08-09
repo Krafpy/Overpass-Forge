@@ -189,7 +189,7 @@ class Intersection(Filter):
         return "." + ".".join(names)
     
     def __repr__(self) -> str:
-        return f"<IntersectsWith {', '.join(map(str, self.statements))}>"
+        return f"<Intersects {', '.join(map(str, self.statements))}>"
 
 
 class Newer(Filter):
