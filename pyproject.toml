@@ -22,4 +22,4 @@ classifiers = [
 [project.urls]
 "Homepage" = "https://github.com/Krafpy/Overpass-Forge"
 "Bug Tracker" = "https://github.com/Krafpy/Overpass-Forge/issues"
-"Documentation" = "https://overpass-forge.readthedocs.io/en/latest"
+"Documentation" = "https://overpassforge.readthedocs.io/en/latest"
