@@ -1,7 +1,10 @@
-from overpassforge.filters import BoundingBox, Newer, Changed, User, Area, Pivot, Polygon
+from overpassforge.filters import Filter, BoundingBox, Newer, Changed, User, Area, Pivot, Polygon
 from overpassforge.statements import Areas
 from overpassforge._variables import VariableManager
 from datetime import datetime
+
+def test_raw_filter(no_vars):
+    assert Filter("some filter")._compile(no_vars) == "some filter"
 
 def test_bounding_box(no_vars):
     assert BoundingBox(50.6,7.0,50.8,7.3)._compile(no_vars) == "(50.6,7.0,50.8,7.3)"

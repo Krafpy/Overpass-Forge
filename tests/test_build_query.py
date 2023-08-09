@@ -1,6 +1,7 @@
-from overpassforge.builder import build
+from overpassforge.builder import build, Settings
 from overpassforge.statements import RawStatement, Nodes, Difference, Union, Areas, Ways
-from overpassforge.filters import Key, Regex
+from overpassforge.filters import *
+import pytest
 
 def test_no_dependencies_1():
     assert build(Nodes().where(amenity="restaurant")) == \
@@ -11,6 +12,14 @@ def test_no_dependencies_2():
     b = Nodes(bounding_box=(42.0, 43.0, 44.0, 45.0))
     u1 = Union(a, b)
     assert build(u1) == """(node(128); node(42.0,43.0,44.0,45.0););"""
+
+def test_with_settings():
+    a = Nodes(ids=128)
+    b = Nodes(bounding_box=(42.0, 43.0, 44.0, 45.0))
+    u1 = Union(a, b)
+    assert build(u1, Settings()) == \
+        """[out:json][timeout:25];\n""" \
+        """(node(128); node(42.0,43.0,44.0,45.0););"""
 
 def test_complex_tag_filtering():
     a = Nodes().where(Regex("^addr:.*$"), name=Regex("^Foo.*$"))
@@ -86,10 +95,10 @@ def test_dependent_raw_statements():
         "node[\"amenity\"=\"bar\"] -> .set_1;\n" \
         "(.set_0; - .set_1;);"
 
-def test_with_area_filter():
+def test_area_filter():
     bus_stops = Nodes(within=Areas(name="Bonn"), highway="bus_stop")
     ways = Ways(around=(bus_stops, 100.0)).where(amenity="cinema")
-    nodes = Nodes(around=(bus_stops, 100.0)).where(amenity="cinema")
+    nodes = Nodes(around=Around(100.0, bus_stops)).where(amenity="cinema")
     assert build((ways + nodes).out("meta")) == \
         """area["name"="Bonn"]->.set_0;\n""" \
         """node(area.set_0)["highway"="bus_stop"]->.set_1;\n""" \
@@ -104,6 +113,11 @@ def test_chained_outs():
         "node[\"amenity\"=\"cinema\"];\n" \
         "out body;\n" \
         "out geom skel;"
+
+def test_invalid_out_options():
+    with pytest.raises(ValueError):
+        Nodes().out("not an option")
+
 
 def test_consecutive_builds():
     # This test fail if the compilation modifies the statements in-place

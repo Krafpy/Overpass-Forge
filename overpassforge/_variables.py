@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+from .errors import UnexpectedCompilationError
 
 if TYPE_CHECKING:
     from .base import Statement
@@ -16,7 +17,7 @@ class VariableManager:
 
     def add_statement(self, stmt: 'Statement') -> str:
         if stmt in self._var_names:
-            raise RuntimeError(f"Trying to name an already named statement: {stmt}.")
+            raise UnexpectedCompilationError(f"Trying to name an already named statement.", stmt)
         
         name = f"set_{self._next_id}"
         if stmt.label is not None and stmt.label not in self._var_names.values():
