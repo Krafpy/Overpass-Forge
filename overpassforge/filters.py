@@ -245,8 +245,6 @@ class User(Filter):
         Raises:
             ValueError: No user specified.
         """
-        if len(users) == 0:
-            raise ValueError("Must list at least one user.")
         self.users = users
 
     def _compile(self, vars: _VariableManager) -> str:
