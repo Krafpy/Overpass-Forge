@@ -1,6 +1,9 @@
 name: Publish to TestPyPI and PyPI
 
-on: push
+on:
+  push:
+    tags:
+        - '*'
 
 jobs:
     build-n-publish:
