@@ -164,6 +164,9 @@ class Combination(Set):
     must derive from.
     """
 
+    def __init__(self, label: str | None = None) -> None:
+        super().__init__(label=label)
+
     def filter(self, *filters: Filter) -> Set:
         return Elements(filters=[Intersection(self), *filters])
 
@@ -186,7 +189,7 @@ class Union(Combination):
         Args:
             statements: The list of statement whose results to combine.
         """
-        super().__init__(label=label)
+        super().__init__(label)
         self.sets = list(sets)
     
     @property
@@ -221,7 +224,7 @@ class Difference(Combination):
             a: The base statement.
             b: The statement whose results to remove from `a`.
         """
-        super().__init__(label=label)
+        super().__init__(label)
         self.a = a
         self.b = b
     
