@@ -7,6 +7,11 @@
 - `Elements` class representing the `nwr` query statement (`Nodes`,
   `Ways` and `Relations` are specialized child classes of `Elements`).
 
+### Fixed
+
+- Semantically incorrect filter simplification when chaining different
+  types of sets.
+
 ### Changed
 
 - Removed `QueryStatement` and `BlockStatement` for a generic `Set`
