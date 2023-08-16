@@ -10,6 +10,7 @@
   `Set` class.
 - Nested unions of unions are merged into a single union when the query
   is built.
+- Intersection using the multiplication operator.
 
 ### Fixed
 
