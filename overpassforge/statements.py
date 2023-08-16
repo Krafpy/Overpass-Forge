@@ -50,7 +50,7 @@ class RawStatement(Statement):
         if "{}" in raw:
             raise ValueError("All inserted dependencies must be named.")
     
-    def _compile_core(self, vars: _VariableManager, out_var: str | None = None) -> str:
+    def _compile_statement(self, vars: _VariableManager, out_var: str | None = None) -> str:
         """Compiles the statement into its Overpass query string, without eventual
         outputs.
         """
@@ -119,7 +119,7 @@ class Elements(Set):
             deps.extend(filt._dependencies)
         return deps
     
-    def _compile_core(self, vars: _VariableManager, out_var: str | None = None) -> str:
+    def _compile_statement(self, vars: _VariableManager, out_var: str | None = None) -> str:
         comp_filter = lambda f: f._compile(vars)
         res = self._type_specifier + "".join(map(comp_filter, self.filters))
         if out_var is not None:
@@ -163,7 +163,7 @@ class Combination(Set):
     """A class from which sets that represent group operations on sets
     must derive from.
     """
-    
+
     def filter(self, *filters: Filter) -> Set:
         return Elements(filters=[Intersection(self), *filters])
 
@@ -193,7 +193,7 @@ class Union(Combination):
     def _dependencies(self) -> list[Statement]:
         return [*self.sets]
     
-    def _compile_core(self, vars: _VariableManager, out_var: str | None = None) -> str:
+    def _compile_statement(self, vars: _VariableManager, out_var: str | None = None) -> str:
         substmts = []
         for stmt in self.sets:
             substmts.append(vars.get_or_compile(stmt, ".{};"))
@@ -229,7 +229,7 @@ class Difference(Combination):
     def _dependencies(self) -> list[Statement]:
         return [self.a, self.b]
     
-    def _compile_core(self, vars: _VariableManager, out_var: str | None = None) -> str:
+    def _compile_statement(self, vars: _VariableManager, out_var: str | None = None) -> str:
         a = vars.get_or_compile(self.a, ".{};")
         b = vars.get_or_compile(self.b, ".{};")
         if out_var is None:

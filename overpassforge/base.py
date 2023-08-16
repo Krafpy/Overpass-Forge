@@ -51,7 +51,7 @@ class Statement:
         """
         visitor.visit_statement_post(self)
 
-    def _compile_core(self, vars: _VariableManager, out_var: str | None = None) -> str:
+    def _compile_statement(self, vars: _VariableManager, out_var: str | None = None) -> str:
         """Compiles the statement into its Overpass query string, without additional
         output statements.
 
@@ -112,7 +112,7 @@ class Statement:
         Returns:
             The compiled statement string.
         """
-        compiled = self._compile_core(vars, out_var)
+        compiled = self._compile_statement(vars, out_var)
         if len(self.out_options) == 0:
             return compiled
         
