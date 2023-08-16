@@ -48,12 +48,12 @@ class CombinationOptimizer(Visitor):
         
         # Remove nested unions
         new_sets = []
-        for subset in statement.sets:
+        for subset in statement.statements:
             if isinstance(subset, Union):
-                new_sets.extend(subset.sets)
+                new_sets.extend(subset.statements)
             else:
                 new_sets.append(subset)
-        statement.sets = new_sets
+        statement.statements = new_sets
 
 
 @dataclass

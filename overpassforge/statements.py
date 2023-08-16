@@ -184,21 +184,21 @@ class Union(Combination):
     >>> print(build(union))
     (way(42); node(42));
     """
-    def __init__(self, *sets: Set, label: str | None = None) -> None:
+    def __init__(self, *statements: Set, label: str | None = None) -> None:
         """
         Args:
             statements: The list of statement whose results to combine.
         """
         super().__init__(label)
-        self.sets = list(sets)
+        self.statements = list(statements)
     
     @property
     def _dependencies(self) -> list[Statement]:
-        return [*self.sets]
+        return [*self.statements]
     
     def _compile_statement(self, vars: _VariableManager, out_var: str | None = None) -> str:
         substmts = []
-        for stmt in self.sets:
+        for stmt in self.statements:
             substmts.append(vars.get_or_compile(stmt, ".{};"))
         if out_var is None:
             return f"({' '.join(substmts)});"
