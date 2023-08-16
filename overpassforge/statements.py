@@ -1,7 +1,4 @@
 from __future__ import annotations
-
-from overpassforge.base import Set
-from overpassforge.filters import Filter
 from .base import Statement, Set
 from ._variables import VariableManager as _VariableManager
 from .errors import UnexpectedCompilationError
