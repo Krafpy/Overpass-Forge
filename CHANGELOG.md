@@ -8,6 +8,8 @@
   `Ways` and `Relations` are specialized child classes of `Elements`).
 - Filter operations on `Union` and `Difference` derived from the
   `Set` class.
+- Nested unions of unions are merged into a single union when the query
+  is built.
 
 ### Fixed
 

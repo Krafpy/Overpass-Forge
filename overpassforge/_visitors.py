@@ -1,6 +1,6 @@
 from __future__ import annotations
 from .base import Statement
-from .statements import RawStatement
+from .statements import RawStatement, Union
 from ._variables import VariableManager
 from .base import Set
 from ._utils import partition
@@ -37,6 +37,23 @@ class CycleDetector(Visitor):
     
     def visit_statement_post(self, statement: Statement):
         self.visiting[statement] = False
+
+
+class CombinationOptimizer(Visitor):
+    """Simplify and optimizes combination statements."""
+
+    def visit_statement_post(self, statement: Statement):
+        if not isinstance(statement, Union):
+            return
+        
+        # Remove nested unions
+        new_sets = []
+        for subset in statement.sets:
+            if isinstance(subset, Union):
+                new_sets.extend(subset.sets)
+            else:
+                new_sets.append(subset)
+        statement.sets = new_sets
 
 
 @dataclass

@@ -1,5 +1,5 @@
 from overpassforge.builder import build, Settings
-from overpassforge.statements import RawStatement, Nodes, Difference, Union, Areas, Ways
+from overpassforge.statements import RawStatement, Nodes, Difference, Union, Areas, Ways, Relations
 from overpassforge.filters import *
 import pytest
 
@@ -178,3 +178,12 @@ def test_filter_on_difference():
     assert build(d) == \
         """(node(42); - way(42);)->.set_0;\n""" \
         """nwr.set_0["name"="Foo"];"""
+
+def test_union_nesting_removed():
+    a = Relations(name="Foo")
+    a.out()
+    b = (Nodes(name="Foo") + Ways(name="Bar") + a) + Nodes(name="Bar")
+    assert build(b) == \
+        """rel["name"="Foo"]->.set_0;\n""" \
+        """.set_0 out;\n""" \
+        """(node["name"="Foo"]; way["name"="Bar"]; .set_0; node["name"="Bar"];);"""

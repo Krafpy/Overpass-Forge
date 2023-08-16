@@ -5,6 +5,7 @@ from ._visitors import CycleDetector as _CycleDetector
 from ._visitors import Compiler as _Compiler
 from ._visitors import DependencyRetriever as _DependencyRetriever
 from ._visitors import DependencySimplifier as _DependencySimplifier
+from ._visitors import CombinationOptimizer as _CombinationOptimizer
 from .base import DATE_FORMAT
 from .errors import InvalidQuerySettings
 from dataclasses import dataclass
@@ -94,6 +95,7 @@ def build(statement: Statement, settings: Settings | None = None) -> str:
     """
     statement = copy.deepcopy(statement)
     _traverse(statement, _CycleDetector())
+    _traverse(statement, _CombinationOptimizer())
     dependencies = _DependencyRetriever()
     _traverse(statement, dependencies)
     _traverse(statement, _DependencySimplifier(dependencies.deps))
