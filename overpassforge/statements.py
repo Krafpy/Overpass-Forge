@@ -218,7 +218,7 @@ class Difference(Combination):
     >>> print(build(bbox_ways - one_way))
     (way(50.6,7.0,50.8,7.3); - way(42););
     """
-    def __init__(self, a: Set, b: Set, label: str | None = None) -> None:
+    def __init__(self, a: Statement, b: Statement, label: str | None = None) -> None:
         """
         Args:
             a: The base statement.
