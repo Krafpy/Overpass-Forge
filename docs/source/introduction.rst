@@ -5,7 +5,7 @@ Overpass Forge is a library aiming at simplifying the automated generation of qu
 for the `OpenStreetMap's Overpass API <https://wiki.openstreetmap.org/wiki/Overpass_API>`_
 in Python. It offers object-oriented mappings to
 `Overpass QL <https://wiki.openstreetmap.org/wiki/Overpass_API/Overpass_QL>`_
-statements and features to represent queries, which are then compiled
+statements and sets to represent queries, which are then compiled
 into the corresponding Overpass QL string.
 
 

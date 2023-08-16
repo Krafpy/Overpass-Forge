@@ -7,25 +7,20 @@ Usage
 Vocabulary
 ----------
 
-The Overpass API works by selecting elements from the OSM database and organising them into *sets*,
+The Overpass API works by selecting *elements* from the OSM database and organising them into *sets*,
 on which further filtering and combinations can be done. A *statement* is a partcular
-operation which collects, filters or combines data and stores the result in a set.
+operation which collects, filters or combines statements or sets or apply operations
+on sets.
 
-In the following, we use the terms *statements* and *sets* interchangeably. The first
-being used more when referring to the *operation* itself, while the second when referring to
-the result of that operation.
-
-Statements are separated in two categories: *query statements* and *block statements*.
-Query statements collect and filter data from the database while block statements combine
-sets. Block statements inherit from the ``BlockStatement`` base class while query statements
-inherit from the ``QueryStatement`` base class. The latter implements specific filtering
-methods.
+Statements may or may not return a set and are represented by the generic ``Statement`` class.
+The ``Set`` class represents a query statement that returns a set, and can be treated as the
+resulting set of the statement.
 
 
 Elements filtering
 ------------------
 
-Query nodes, ways relations and areas with specific filters:
+Query nodes, ways, relations and areas with specific filters:
 
 .. code-block:: python
 
@@ -87,6 +82,16 @@ of ``Filter`` instances as arguments:
 
 Available filters are listed in the :ref:`API Reference <api-reference-filters>`.
 
+To query any elements (nodes, ways and relations), use the base ``Elements`` class:
+
+.. code-block:: python
+
+    elements = Elements(name="Foo")
+
+.. code-block:: text
+
+    nwr["name"="Foo"];
+
 
 Unions, differences and intersections
 -------------------------------------
@@ -109,9 +114,7 @@ and a difference between two sets.
     (node["name"="Foo"]; way["name"="Foo"]; rel["name"="Foo"];);
     (node(50.6,7.0,50.8,7.3); - node["name"="Foo"];);
 
-It is also possible to use addition and substraction to create unions and differences.
-Note however that a union of more than two elements using that set creates nested
-unions:
+It is also possible to use addition and substraction operators to create unions and differences:
 
 .. code-block:: python
 
@@ -123,10 +126,22 @@ unions:
 
 .. code-block:: text
 
-    ((node["name"="Foo"]; way["name"="Foo"];); rel["name"="Foo"];);
+    (node["name"="Foo"]; way["name"="Foo"]; rel["name"="Foo"];);
     (node(50.6,7.0,50.8,7.3); - node["name"="Foo"];);
 
-Intersections are a specific ``Intersection`` filter. It can also be called from a query
+Since unions and differences are sets, it is possible to further apply filters on them:
+
+.. code-block:: python
+
+    union = Nodes(name="Foo") + Ways(name="Foo")
+    union = union.where(amenity="cinema")
+
+.. code-block:: text
+
+    (node["name"="Foo"]; way["name"="Foo"];)->.set_0;
+    nwr.set_0["amenity"="cinema"];
+
+Intersections are built via a specific ``Intersect`` filter, and can be called from a query
 statement:
 
 .. code-block:: python
@@ -140,12 +155,29 @@ statement:
     (node["name"="Foo"]; way["name"="Foo"];)->.set_0;
     node.set_0(50.6,7.0,50.8,7.3);
 
+Or can be constructed using the multiplication operator:
+
+.. code-block:: python
+
+    itsc1 = Nodes(name="Foo") * Nodes(amenity="cinema")
+    print(build(itsc1))
+
+    itsc2 = Nodes(name="Foo") * Ways(name="Foo")
+    print(build(itsc2))
+
+.. code-block:: text
+
+    node["name"="Foo"]["amenity"="cinema"];
+
+    way["name"="Foo"]->.set_0;
+    node["name"="Foo"].set_0;
 
 Labelled sets
 -------------
 
 Each statement can receive a ``label`` argument. This label will be used as the name of
-variable (if no conflict) in which the result of the statement will be stored.
+variable (if no conflict) in which the result set of the statement (if any *and* required
+at compile time) will be stored.
 
 .. code-block:: python
 
@@ -176,3 +208,6 @@ is depended by other statements using placeholders.
     area["name"="Berlin"]->.set_0;
     node(area.set_0)[!opening_hours]->._;
     out;
+
+The ``{:out_var}`` placheolders is a special placheolder indicating where to insert
+the name of the output variable of this statement (if it needs one).
