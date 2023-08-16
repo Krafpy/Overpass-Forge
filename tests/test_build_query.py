@@ -164,14 +164,14 @@ def test_different_query_simplficiation():
 
 def test_filter_on_union():
     u = Nodes(42) + Ways(42)
-    u = u.filter(Key("name") == "Foo")
+    u = u.where(name="Foo")
     assert build(u) == \
         """(node(42); way(42);)->.set_0;\n""" \
         """nwr.set_0["name"="Foo"];"""
 
 def test_filter_on_difference():
-    u = Nodes(42) - Ways(42)
-    u = u.filter(Key("name") == "Foo")
-    assert build(u) == \
+    d = Nodes(42) - Ways(42)
+    d = d.where(name="Foo")
+    assert build(d) == \
         """(node(42); - way(42);)->.set_0;\n""" \
         """nwr.set_0["name"="Foo"];"""
