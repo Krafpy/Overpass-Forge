@@ -317,8 +317,8 @@ class Around(Filter):
         """
         self.radius = radius
         self.input_set = input_set
-        self.lats = lats
-        self.lons = lons
+        self.lats = None if lats is None else list(lats)
+        self.lons = None if lons is None else list(lons)
     
     @property
     def _dependencies(self) -> list[Statement]:
