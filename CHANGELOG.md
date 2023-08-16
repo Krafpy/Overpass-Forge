@@ -21,6 +21,7 @@
 - Removed `QueryStatement` and `BlockStatement` for a generic `Set`
   for better abastraction.
 - `out()` doesn't return anything.
+- Renamed `Intersection` filter to `Intersect`.
 
 ## 0.1.1 (2023-08-09)
 
