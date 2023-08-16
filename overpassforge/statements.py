@@ -49,7 +49,7 @@ class RawStatement(Statement):
         super().__init__(label)
 
         self._raw = raw
-        self._dependency_list = dependencies
+        self._dependency_dict = dependencies
         if "{}" in raw:
             raise ValueError("All inserted dependencies must be named.")
     
@@ -58,7 +58,7 @@ class RawStatement(Statement):
         outputs.
         """
         var_names: dict[str, str] = {}
-        for name, stmt in self._dependency_list.items():
+        for name, stmt in self._dependency_dict.items():
             if not vars.is_named(stmt):
                 raise UnexpectedCompilationError("All inserted sets must use variables.")
             var_names[name] = vars[stmt]
@@ -72,7 +72,7 @@ class RawStatement(Statement):
     @property
     def _dependencies(self) -> list[Statement]:
         """List of statements on which this statement depends on."""
-        return list(self._dependency_list.values())
+        return list(self._dependency_dict.values())
 
 
 class Elements(Set):
