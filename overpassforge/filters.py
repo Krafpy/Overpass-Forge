@@ -164,7 +164,7 @@ class Ids(Filter):
         return f"<Ids ({self.ids})>"
 
 
-class Intersection(Filter):
+class Intersect(Filter):
     """Intersection with other statement results."""
 
     def __init__(self, *statements: Statement) -> None:
@@ -189,7 +189,7 @@ class Intersection(Filter):
         return "." + ".".join(names)
     
     def __repr__(self) -> str:
-        return f"<Intersects {', '.join(map(str, self.statements))}>"
+        return f"<Intersect {', '.join(map(str, self.statements))}>"
 
 
 class Newer(Filter):

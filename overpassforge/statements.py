@@ -7,7 +7,7 @@ from .filters import (
     BoundingBox,
     Ids,
     Key,
-    Intersection,
+    Intersect,
     Around,
     Area,
 )
@@ -91,7 +91,7 @@ class Elements(Set):
         super().__init__(filters, label)
 
         if isinstance(input_set, Statement):
-            self.filters.append(Intersection(input_set))
+            self.filters.append(Intersect(input_set))
 
         if isinstance(ids, int):
             self.filters.append(Ids(ids))
@@ -168,7 +168,7 @@ class Combination(Set):
         super().__init__(label=label)
 
     def filter(self, *filters: Filter) -> Set:
-        return Elements(filters=[Intersection(self), *filters])
+        return Elements(filters=[Intersect(self), *filters])
 
 
 class Union(Combination):

@@ -4,7 +4,7 @@ from .statements import RawStatement
 from ._variables import VariableManager
 from .base import Set
 from ._utils import partition
-from .filters import Filter, Intersection
+from .filters import Filter, Intersect
 from .errors import CircularDependencyError
 from dataclasses import dataclass
 
@@ -105,7 +105,7 @@ class DependencySimplifier(Visitor):
         is_single = lambda stmt: self.deps[stmt].ref_count == 1
 
         for filt in statement.filters:
-            if not isinstance(filt, Intersection):
+            if not isinstance(filt, Intersect):
                 new_filters.append(filt)
                 continue
             
@@ -118,7 +118,7 @@ class DependencySimplifier(Visitor):
                 else:
                     locked.append(stmt)
             if len(locked) > 0:
-                new_filters.append(Intersection(*locked))
+                new_filters.append(Intersect(*locked))
         
         statement.filters = new_filters
         return statement

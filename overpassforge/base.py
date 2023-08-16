@@ -5,7 +5,7 @@ from .filters import (
     BoundingBox,
     Regex,
     Key,
-    Intersection,
+    Intersect,
     Newer,
     Changed,
     User,
@@ -148,7 +148,7 @@ class Set(Statement):
         Args:
             filters: A list of filters.
         """
-        return self.__class__(filters=[Intersection(self), *filters])
+        return self.__class__(filters=[Intersect(self), *filters])
     
     def where(self, *keys: str | Regex, **tags: str | Regex) -> Set:
         """Adds filters "key", ~"key", "key"="value", or "key"~"value".
@@ -186,7 +186,7 @@ class Set(Statement):
         Args:
             others: Other statements to intersect with
         """
-        return self.filter(Intersection(*others))
+        return self.filter(Intersect(*others))
     
     def changed_since(self, date: datetime) -> Set:
         """Filters the elements that were changed since the specified datetime.
