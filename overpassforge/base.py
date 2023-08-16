@@ -141,6 +141,9 @@ class Set(Statement):
     def __add__(self, other: Set) -> Union:
         from .statements import Union
         return Union(self, other)
+
+    def __mul__(self, other: Set) -> Set:
+        return self.intersection(other)
     
     def filter(self, *filters: Filter) -> Set:
         """Adds filters to the set.

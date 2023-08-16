@@ -172,8 +172,7 @@ class Combination(Set):
 
 
 class Union(Combination):
-    """
-    Represents a union of sets: `(set_1; set_2; …);`
+    """Represents a union of sets: `(set_1; set_2; …);`
 
     Example:
 
@@ -184,6 +183,7 @@ class Union(Combination):
     >>> print(build(union))
     (way(42); node(42));
     """
+
     def __init__(self, *statements: Set, label: str | None = None) -> None:
         """
         Args:
@@ -206,8 +206,7 @@ class Union(Combination):
 
 
 class Difference(Combination):
-    """
-    Represents the difference of two sets: `(set_1 - set_2;);`
+    """Represents the difference of two sets: `(set_1 - set_2;);`
 
     Example:
 
@@ -218,6 +217,7 @@ class Difference(Combination):
     >>> print(build(bbox_ways - one_way))
     (way(50.6,7.0,50.8,7.3); - way(42););
     """
+
     def __init__(self, a: Statement, b: Statement, label: str | None = None) -> None:
         """
         Args:

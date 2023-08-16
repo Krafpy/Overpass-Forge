@@ -187,3 +187,13 @@ def test_union_nesting_removed():
         """rel["name"="Foo"]->.set_0;\n""" \
         """.set_0 out;\n""" \
         """(node["name"="Foo"]; way["name"="Bar"]; .set_0; node["name"="Bar"];);"""
+
+def test_intersection():
+    a = Nodes(name="Foo")
+    b = Ways(name="Foo")
+    c = Relations(name="Foo")
+    i = a * b * c
+    assert build(i) == \
+        """way["name"="Foo"]->.set_0;\n""" \
+        """rel["name"="Foo"]->.set_1;\n""" \
+        """node["name"="Foo"].set_0.set_1;"""
