@@ -71,7 +71,7 @@ class Statement:
     def __hash__(self) -> int:
         return id(self)
     
-    def out(self, *options: str | tuple[float, float, float, float]) -> Statement:
+    def out(self, *options: str | tuple[float, float, float, float]):
         """
         Indicate that the result of this statement must be outputed.
 
@@ -79,9 +79,6 @@ class Statement:
             options: None or any combination of "ids", "skel", "body", "tags",
                 "meta", "noids", "geom", "bb", "center", "asc", "qt", "count" or
                 a bounding box (south,west,north,east).
-        
-        Returns:
-            This same instance.
         
         Raises:
             ValueError: Invalid output options.
@@ -99,7 +96,6 @@ class Statement:
                 valid_options.add(str(item))
         
         self.out_options.append(valid_options)
-        return self
     
     def _compile(self, vars: _VariableManager, out_var: str | None = None) -> str:
         """Compiles the statement into its Overpass query string, with its eventual outputs.

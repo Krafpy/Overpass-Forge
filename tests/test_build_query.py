@@ -41,7 +41,8 @@ def test_one_dependency():
     """((node(128); .set_0;); - (.set_0; node(id:16,32);););"""
 
 def test_with_one_out():
-    a = Nodes(ids=42).out(" body geom", " meta  ", (10.0,20.0,30.0,40.0))
+    a = Nodes(ids=42)
+    a.out(" body geom", " meta  ", (10.0,20.0,30.0,40.0))
     assert build(a) == \
         "node(42);\n" \
         "out (10.0, 20.0, 30.0, 40.0) body geom meta;"
@@ -103,7 +104,9 @@ def test_area_filter():
     bus_stops = Nodes(within=Areas(name="Bonn"), highway="bus_stop")
     ways = Ways(around=(bus_stops, 100.0)).where(amenity="cinema")
     nodes = Nodes(around=Around(100.0, bus_stops)).where(amenity="cinema")
-    assert build((ways + nodes).out("meta")) == \
+    union = ways + nodes
+    union.out("meta")
+    assert build(union) == \
         """area["name"="Bonn"]->.set_0;\n""" \
         """node(area.set_0)["highway"="bus_stop"]->.set_1;\n""" \
         """(way(around.set_1:100.0)["amenity"="cinema"]; node(around.set_1:100.0)["amenity"="cinema"];);\n""" \
