@@ -115,7 +115,7 @@ class DependencySimplifier(Visitor):
             substmts = filt.statements
             singles, locked = partition(is_single, substmts)
             for stmt in singles:
-                if isinstance(stmt, Set):
+                if isinstance(stmt, Set) and stmt.__class__ is statement.__class__:
                     new_filters.extend(stmt.filters)
                 else:
                     locked.append(stmt)

@@ -155,6 +155,13 @@ def test_labelled_raw_statement():
         """node["amenity"="cinema"].raw_statement;\n""" \
         """out;"""
 
+def test_different_query_simplficiation():
+    n = Nodes(name="Foo")
+    w = Ways(name="Bar", input_set=n)
+    assert build(w) == \
+        """node["name"="Foo"]->.set_0;\n""" \
+        """way.set_0["name"="Bar"];"""
+
 # def test_filter_on_union():
 #     u = Nodes(42) + Ways(42)
 #     u.filter(Key("name") == "Foo")
