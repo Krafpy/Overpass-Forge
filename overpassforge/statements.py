@@ -161,7 +161,7 @@ class Areas(Elements):
 
 class Combination(Set):
     """A class from which sets that represent group operations on sets
-    must derive from.
+    must derive from (e.g. unions, differences...).
     """
 
     def __init__(self, label: str | None = None) -> None:
