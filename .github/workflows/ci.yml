@@ -5,6 +5,10 @@ on:
     paths:
       - 'overpassforge/**'
       - 'tests/**'
+  pull_request:
+    paths:
+      - 'overpassforge/**'
+      - 'tests/**'
 
 jobs:
   build:
