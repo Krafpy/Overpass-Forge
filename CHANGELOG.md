@@ -6,6 +6,8 @@
 
 - `Elements` class representing the `nwr` query statement (`Nodes`,
   `Ways` and `Relations` are specialized child classes of `Elements`).
+- Filter operations on `Union` and `Difference` derived from the
+  `Set` class.
 
 ### Fixed
 
