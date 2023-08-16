@@ -163,7 +163,9 @@ class Combination(Set):
     """A class from which sets that represent group operations on sets
     must derive from.
     """
-    pass
+    
+    def filter(self, *filters: Filter) -> Set:
+        return Elements(filters=[Intersection(self), *filters])
 
 
 class Union(Combination):
@@ -179,12 +181,12 @@ class Union(Combination):
     >>> print(build(union))
     (way(42); node(42));
     """
-    def __init__(self, *sets: Set, label: str | None = None, filters: Iterable[Filter] = []) -> None:
+    def __init__(self, *sets: Set, label: str | None = None) -> None:
         """
         Args:
             statements: The list of statement whose results to combine.
         """
-        super().__init__(filters, label)
+        super().__init__(label=label)
         self.sets = list(sets)
     
     @property
@@ -213,13 +215,13 @@ class Difference(Combination):
     >>> print(build(bbox_ways - one_way))
     (way(50.6,7.0,50.8,7.3); - way(42););
     """
-    def __init__(self, a: Set, b: Set, label: str | None = None, filters: Iterable[Filter] = []) -> None:
+    def __init__(self, a: Set, b: Set, label: str | None = None) -> None:
         """
         Args:
             a: The base statement.
             b: The statement whose results to remove from `a`.
         """
-        super().__init__(filters, label)
+        super().__init__(label=label)
         self.a = a
         self.b = b
     

@@ -162,9 +162,16 @@ def test_different_query_simplficiation():
         """node["name"="Foo"]->.set_0;\n""" \
         """way.set_0["name"="Bar"];"""
 
-# def test_filter_on_union():
-#     u = Nodes(42) + Ways(42)
-#     u.filter(Key("name") == "Foo")
-#     assert build(u) == \
-#         """(node(42); way(42);)->.set_0;\n""" \
-#         """nwr.set_0"""
+def test_filter_on_union():
+    u = Nodes(42) + Ways(42)
+    u = u.filter(Key("name") == "Foo")
+    assert build(u) == \
+        """(node(42); way(42);)->.set_0;\n""" \
+        """nwr.set_0["name"="Foo"];"""
+
+def test_filter_on_difference():
+    u = Nodes(42) - Ways(42)
+    u = u.filter(Key("name") == "Foo")
+    assert build(u) == \
+        """(node(42); - way(42);)->.set_0;\n""" \
+        """nwr.set_0["name"="Foo"];"""

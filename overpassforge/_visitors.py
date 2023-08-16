@@ -1,15 +1,12 @@
 from __future__ import annotations
-
-from overpassforge.base import Statement
 from .base import Statement
-from .statements import RawStatement, Combination, Elements
+from .statements import RawStatement
 from ._variables import VariableManager
 from .base import Set
 from ._utils import partition
 from .filters import Filter, Intersection
 from .errors import CircularDependencyError
 from dataclasses import dataclass
-from copy import copy
 
 
 class Visitor:
@@ -102,7 +99,7 @@ class DependencySimplifier(Visitor):
 
     def visit_statement_post(self, statement: Statement):
         if not isinstance(statement, Set):
-            return
+            return statement
         
         new_filters: list[Filter] = []
         is_single = lambda stmt: self.deps[stmt].ref_count == 1
@@ -115,7 +112,8 @@ class DependencySimplifier(Visitor):
             substmts = filt.statements
             singles, locked = partition(is_single, substmts)
             for stmt in singles:
-                if isinstance(stmt, Set) and stmt.__class__ is statement.__class__:
+                if isinstance(stmt, Set) and \
+                    stmt.__class__ is statement.__class__:
                     new_filters.extend(stmt.filters)
                 else:
                     locked.append(stmt)
@@ -123,6 +121,7 @@ class DependencySimplifier(Visitor):
                 new_filters.append(Intersection(*locked))
         
         statement.filters = new_filters
+        return statement
 
 
 class Compiler(Visitor):
@@ -150,20 +149,61 @@ class Compiler(Visitor):
             self.sequence.append(compiled)
 
 
-def traverse_statement(statement: Statement, visitor: Visitor, visited: set[Statement] | None = None):
+def traverse_statement(statement: Statement, visitor: Visitor):
     """
     Applies on a visitor on the statement's dependency graph in a
     Depth-First Search manner. The graph must not contain cycles.
     If a substatement is referenced more that once it will be pre-visited
     multiple times but post-visited only once.
     """
-    if visited is None:
-        visited = set()
+
+    visited = set[Statement]()
+
+    def traverse(statement: Statement):
+        statement._accept_pre(visitor)
+        if statement in visited:
+            return statement
+        visited.add(statement)
+        for dep in statement._dependencies:
+            traverse(dep)
+        statement._accept_post(visitor)
     
-    statement._accept_pre(visitor)
-    if statement in visited:
-        return
-    visited.add(statement)
-    for child in statement._dependencies:
-        traverse_statement(child, visitor, visited)
-    statement._accept_post(visitor)
+    traverse(statement)
+
+    # def traverse(stmt: Statement):
+    #     return traverse_statement(stmt, visitor, visited)
+
+    # match statement:
+    #     case Elements(filters=filters):
+    #         new_filters = []
+    #         for filt in filters:
+    #             match filt:
+    #                 case Intersection(statements=others):
+    #                     new_filters.append(Intersection(*map(traverse, others)))
+    #                 case Area(input_area=areas):
+    #                     new_areas = cast(Areas, traverse(areas))
+    #                     new_filters.append(Area(input_area=new_areas))
+    #                 case Pivot(input_area=areas):
+    #                     new_areas = cast(Areas, traverse(areas))
+    #                     new_filters.append(Pivot(input_area=new_areas))
+    #                 case Around(radius=r, input_set=input_set, lats=lats, lons=lons):
+    #                     new_set = None
+    #                     if input_set is not None:
+    #                         new_set = traverse(input_set)
+    #                     new_filters.append(Around(r, new_set, lats, lons))
+    #                 case _:
+    #                     new_filters.append(filt)
+            
+    #         statement.filters = new_filters
+        
+    #     case Union(sets=sets):
+    #         statement.sets = cast(list[Set], list(map(traverse, sets)))
+        
+    #     case Difference(a=a, b=b):
+    #         statement.a = cast(Set, traverse(a))
+    #         statement.b = cast(Set, traverse(b))
+        
+    #     case RawStatement(_dependency_dict=deps):
+    #         statement._dependency_dict = {name: traverse(stmt) for name, stmt in deps.items()}
+
+    # return visitor.visit_statement_post(statement)
