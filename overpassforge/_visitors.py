@@ -1,12 +1,15 @@
 from __future__ import annotations
+
+from overpassforge.base import Statement
 from .base import Statement
-from .statements import RawStatement
+from .statements import RawStatement, Combination, Elements
 from ._variables import VariableManager
-from .base import QueryStatement
+from .base import Set
 from ._utils import partition
 from .filters import Filter, Intersection
 from .errors import CircularDependencyError
 from dataclasses import dataclass
+from copy import copy
 
 
 class Visitor:
@@ -74,7 +77,7 @@ class DependencyRetriever(Visitor):
                     self.deps[stmt] = Dependency(stmt, 0, True)
             return
         # Dependencies used by filters must always from variables
-        if isinstance(statement, QueryStatement):
+        if isinstance(statement, Set):
             for f in statement.filters:
                 for stmt in f._dependencies:
                     if stmt not in self.deps:
@@ -98,7 +101,7 @@ class DependencySimplifier(Visitor):
         self.deps = deps
 
     def visit_statement_post(self, statement: Statement):
-        if not isinstance(statement, QueryStatement):
+        if not isinstance(statement, Set):
             return
         
         new_filters: list[Filter] = []
@@ -112,7 +115,7 @@ class DependencySimplifier(Visitor):
             substmts = filt.statements
             singles, locked = partition(is_single, substmts)
             for stmt in singles:
-                if isinstance(stmt, QueryStatement):
+                if isinstance(stmt, Set):
                     new_filters.extend(stmt.filters)
                 else:
                     locked.append(stmt)

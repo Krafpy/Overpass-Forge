@@ -15,7 +15,7 @@ def test_has_cycle():
     b = Nodes()
     c = Union(a, b)
     d = Union(a, b, c)
-    c.statements.append(d)
+    c.sets.append(d)
 
     with pytest.raises(CircularDependencyError):
         traverse_statement(d, CycleDetector())
@@ -34,10 +34,10 @@ def test_complex_no_cycle():
     u3 = Union(e, f)
     u4 = Union(g, u2, u3)
 
-    u2.statements.append(u3)
-    u4.statements.append(u1)
-    u4.statements.append(u2)
-    u4.statements.append(u3)
+    u2.sets.append(u3)
+    u4.sets.append(u1)
+    u4.sets.append(u2)
+    u4.sets.append(u3)
 
     traverse_statement(u4, CycleDetector())
 
@@ -55,10 +55,10 @@ def test_complex_has_cycle():
     u3 = Union(e, f)
     u4 = Union(g, u2, u3)
 
-    u3.statements.append(u2)
-    u1.statements.append(u3)
-    u4.statements.append(u2)
-    u4.statements.append(u3)
+    u3.sets.append(u2)
+    u1.sets.append(u3)
+    u4.sets.append(u2)
+    u4.sets.append(u3)
 
     with pytest.raises(CircularDependencyError):
         traverse_statement(u4, CycleDetector())
@@ -91,8 +91,8 @@ def test_complex_reference_count():
     u4 = Union(g, u2, u3)
     u5 = Union(u2, u4, g)
 
-    u2.statements.append(u3)
-    u4.statements.append(u1)
+    u2.sets.append(u3)
+    u4.sets.append(u1)
 
     counter = DependencyRetriever()
     traverse_statement(u5, counter)

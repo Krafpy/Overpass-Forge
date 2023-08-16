@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `Elements` class representing the `nwr` query statement (`Nodes`,
+  `Ways` and `Relations` are specialized child classes of `Elements`).
+
+### Changed
+
+- Removed `QueryStatement` and `BlockStatement` for a generic `Set`
+  for better abastraction.
+
+
 ## 0.1.1 (2023-08-09)
 
 ### Added

@@ -1,7 +1,20 @@
 from __future__ import annotations
-from .base import Statement, QueryStatement, BlockStatement
+
+from overpassforge.base import Set
+from overpassforge.filters import Filter
+from .base import Statement, Set
 from ._variables import VariableManager as _VariableManager
 from .errors import UnexpectedCompilationError
+from .filters import (
+    Filter,
+    BoundingBox,
+    Ids,
+    Key,
+    Intersection,
+    Around,
+    Area,
+)
+from typing import Iterable
 
 
 class RawStatement(Statement):
@@ -62,7 +75,62 @@ class RawStatement(Statement):
         return list(self._dependency_list.values())
 
 
-class Nodes(QueryStatement):
+class Elements(Set):
+    """Represents a query set, e.g. node, rel, way..."""
+
+    _type_specifier: str = "nwr"
+    
+    def __init__(self,
+        ids: Iterable[int] | int | None = None,
+        label: str | None = None, *,
+        bounding_box: tuple[float, float, float, float] | None = None,
+        input_set: Statement | None = None,
+        within: Areas | None = None,
+        around: tuple[Statement, float] | Around | None = None,
+        filters: Iterable[Filter] = [],
+        **tags: str
+    ) -> None:
+        
+        super().__init__(filters, label)
+
+        if isinstance(input_set, Statement):
+            self.filters.append(Intersection(input_set))
+
+        if isinstance(ids, int):
+            self.filters.append(Ids(ids))
+        elif ids is not None:
+            self.filters.append(Ids(*ids))
+
+        if bounding_box is not None:
+            self.filters.append(BoundingBox(*bounding_box))
+        
+        if within is not None:
+            self.filters.append(Area(within))
+        
+        if isinstance(around, Around):
+            self.filters.append(around)
+        elif around is not None:
+            self.filters.append(Around(around[1], around[0]))
+        
+        for key, value in tags.items():
+            self.filters.append(Key(key) == value)
+
+    @property
+    def _dependencies(self) -> list[Statement]:
+        deps: list[Statement] = []
+        for filt in self.filters:
+            deps.extend(filt._dependencies)
+        return deps
+    
+    def _compile_core(self, vars: _VariableManager, out_var: str | None = None) -> str:
+        comp_filter = lambda f: f._compile(vars)
+        res = self._type_specifier + "".join(map(comp_filter, self.filters))
+        if out_var is not None:
+            return res + f"->.{out_var};"
+        return res + ";"
+
+
+class Nodes(Elements):
     """A node query.
 
     Example:
@@ -77,25 +145,33 @@ class Nodes(QueryStatement):
 
     _type_specifier: str = "node"
 
-class Ways(QueryStatement):
+class Ways(Elements):
     """A way query."""
 
     _type_specifier: str = "way"
 
-class Relations(QueryStatement):
+class Relations(Elements):
     """A relation query."""
 
     _type_specifier: str = "rel"
 
-class Areas(QueryStatement):
+class Areas(Elements):
     """An area query."""
 
     _type_specifier: str = "area"
 
 
-class Union(BlockStatement):
+
+class Combination(Set):
+    """A class from which sets that represent group operations on sets
+    must derive from.
     """
-    Represents a union of statements: `(statement_1; statement_2; …);`
+    pass
+
+
+class Union(Combination):
+    """
+    Represents a union of sets: `(set_1; set_2; …);`
 
     Example:
 
@@ -106,30 +182,30 @@ class Union(BlockStatement):
     >>> print(build(union))
     (way(42); node(42));
     """
-    def __init__(self, *statements: Statement, label: str | None = None) -> None:
+    def __init__(self, *sets: Set, label: str | None = None, filters: Iterable[Filter] = []) -> None:
         """
         Args:
             statements: The list of statement whose results to combine.
         """
-        super().__init__(label)
-        self.statements = list(statements)
+        super().__init__(filters, label)
+        self.sets = list(sets)
     
     @property
     def _dependencies(self) -> list[Statement]:
-        return [*self.statements]
+        return [*self.sets]
     
     def _compile_core(self, vars: _VariableManager, out_var: str | None = None) -> str:
         substmts = []
-        for stmt in self.statements:
+        for stmt in self.sets:
             substmts.append(vars.get_or_compile(stmt, ".{};"))
         if out_var is None:
             return f"({' '.join(substmts)});"
         return f"({' '.join(substmts)})->.{out_var};"
 
 
-class Difference(BlockStatement):
+class Difference(Combination):
     """
-    Represents the difference of two statements: `(statement_1 - statement_2;);`
+    Represents the difference of two sets: `(set_1 - set_2;);`
 
     Example:
 
@@ -140,13 +216,13 @@ class Difference(BlockStatement):
     >>> print(build(bbox_ways - one_way))
     (way(50.6,7.0,50.8,7.3); - way(42););
     """
-    def __init__(self, a: Statement, b: Statement, label: str | None = None) -> None:
+    def __init__(self, a: Set, b: Set, label: str | None = None, filters: Iterable[Filter] = []) -> None:
         """
         Args:
             a: The base statement.
             b: The statement whose results to remove from `a`.
         """
-        super().__init__(label)
+        super().__init__(filters, label)
         self.a = a
         self.b = b
     

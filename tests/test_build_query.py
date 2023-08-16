@@ -47,9 +47,11 @@ def test_with_one_out():
         "out (10.0, 20.0, 30.0, 40.0) body geom meta;"
 
 def test_with_two_out():
-    a = Nodes(ids=42).out("body")
+    a = Nodes(ids=42)
+    a.out("body")
     b = Nodes(ids=43)
-    u = Union(a, b).out("geom")
+    u = Union(a, b)
+    u.out("geom")
     assert build(u) == \
         "node(42)->.set_0;\n" \
         ".set_0 out body;\n" \
@@ -58,8 +60,10 @@ def test_with_two_out():
 
 def test_filter_dependency():
     a = Nodes(bounding_box=(10.0, 20.0, 30.0, 40.0))
-    b = Nodes(input_set=a).where(amenity="bar").out()
-    u = (a + b).out()
+    b = Nodes(input_set=a).where(amenity="bar")
+    b.out()
+    u = a + b
+    u.out()
     assert build(u) == \
         "node(10.0,20.0,30.0,40.0)->.set_0;\n" \
         "node.set_0[\"amenity\"=\"bar\"]->.set_1;\n" \
@@ -150,3 +154,10 @@ def test_labelled_raw_statement():
         """node[name="Foo"]->.raw_statement;\n""" \
         """node["amenity"="cinema"].raw_statement;\n""" \
         """out;"""
+
+# def test_filter_on_union():
+#     u = Nodes(42) + Ways(42)
+#     u.filter(Key("name") == "Foo")
+#     assert build(u) == \
+#         """(node(42); way(42);)->.set_0;\n""" \
+#         """nwr.set_0"""

@@ -1,8 +1,11 @@
-from overpassforge.statements import RawStatement, Nodes, Ways, Relations, Areas, Difference, Union
+from overpassforge.statements import RawStatement, Elements, Nodes, Ways, Relations, Areas, Difference, Union
 from overpassforge._variables import VariableManager
 from overpassforge.filters import *
 from overpassforge.errors import UnexpectedCompilationError
 import pytest
+
+def test_elements_statement(no_vars):
+    assert Elements()._compile(no_vars) == "nwr;"
 
 def test_node_statement(no_vars):
     assert Nodes()._compile(no_vars) == "node;"
