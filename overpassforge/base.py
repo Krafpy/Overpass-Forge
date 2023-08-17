@@ -240,3 +240,23 @@ class Set(Statement):
             lons: List of longitudes of points.
         """
         return self.filter(Around(radius, other, lats, lons))
+
+    def recursed_down(self) -> Set:
+        """Returns the recursed down (``>``) set."""
+        from .statements import RecurseDown
+        return RecurseDown(self)
+
+    def recursed_down_rels(self) -> Set:
+        """Returns the recursed down relations (``>>``) set."""
+        from .statements import RecurseDownRels
+        return RecurseDownRels(self)
+    
+    def recursed_up(self) -> Set:
+        """Returns the recursed down (``<``) set."""
+        from .statements import RecurseUp
+        return RecurseUp(self)
+    
+    def recursed_up_rels(self) -> Set:
+        """Returns the recursed up relations (``<<``) set."""
+        from .statements import RecurseUpRels
+        return RecurseUpRels(self)

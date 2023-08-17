@@ -58,8 +58,8 @@ List of currently implemented features, based on the [Overpass QL wiki](https://
 - Standalone statements
   - [x] out
   - [x] Item (implicit)
-  - [ ] Recurse up (<) and down (>)
-  - [ ] Recurse up relations (<<) and down (>>)
+  - [x] Recurse up (<) and down (>)
+  - [x] Recurse up relations (<<) and down (>>)
   - [ ] Query for areas (is_in)
   - [ ] Statements *timeline*, *local*, *convert*, *make*
   - [x] The Query Statement (*node, way, rel, area* **only**)

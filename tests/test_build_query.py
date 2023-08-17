@@ -197,3 +197,14 @@ def test_intersection():
         """way["name"="Foo"]->.set_0;\n""" \
         """rel["name"="Foo"]->.set_1;\n""" \
         """node["name"="Foo"].set_0.set_1;"""
+
+def test_basic_recurse_down():
+    a = Nodes(name="Foo", label="a")
+    u = a + a.recursed_down()
+    u.out()
+    a.out()
+    assert build(u) == \
+        """node["name"="Foo"]->.a;\n""" \
+        """.a out;\n""" \
+        """(.a; .a >;);\n""" \
+        """out;"""

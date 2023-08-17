@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1 (Unreleased)
+
+### Added
+
+- Added recursed up (relations) and down (relations) sets
+  (`>`, `>>`, `<`, `<<`).
+
 ## 0.2.0 (2023-08-16)
 
 ### Added

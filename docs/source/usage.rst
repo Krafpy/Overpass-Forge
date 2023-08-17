@@ -172,6 +172,32 @@ Or can be constructed using the multiplication operator:
     way["name"="Foo"]->.set_0;
     node["name"="Foo"].set_0;
 
+
+Recursed down and up sets
+-------------------------
+
+It is possible to retrieve all related elements to the elements of a given set by
+*recursing* over it. Recursing *up* returns the set of elements
+which contain elements from the input set. Recusring *down* returns the elements that
+are part of the input set's elements. Recursing down or up *relations* also includes
+indirectly related elements.
+For more details, check the official
+`Overpass QL <https://wiki.openstreetmap.org/wiki/Overpass_API/Overpass_QL#Recurse_up_(%3C)>`_
+documentation.
+
+.. code-block:: python
+
+    a = Nodes(name="Foo", label="a")
+    union = a + a.recursed_down()
+    union.out()
+    print(build(union))
+
+.. code-block:: text
+
+    node["name"="Foo"]->.a;
+    (.a; .a >;);
+    out;
+
 Labelled sets
 -------------
 
