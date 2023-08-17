@@ -1,7 +1,7 @@
 from __future__ import annotations
 from .base import Statement, Set
 from ._variables import VariableManager as _VariableManager
-from .errors import UnexpectedCompilationError
+from .errors import UnexpectedCompilationError, InvalidStatementAttributes
 from .filters import (
     Filter,
     BoundingBox,
@@ -91,37 +91,30 @@ class Elements(Set):
         super().__init__(filters, label)
 
         if isinstance(input_set, Statement):
-            self.filters.append(Intersect(input_set))
+            self._filters.append(Intersect(input_set))
 
         if isinstance(ids, int):
-            self.filters.append(Ids(ids))
+            self._filters.append(Ids(ids))
         elif ids is not None:
-            self.filters.append(Ids(*ids))
+            self._filters.append(Ids(*ids))
 
         if bounding_box is not None:
-            self.filters.append(BoundingBox(*bounding_box))
+            self._filters.append(BoundingBox(*bounding_box))
         
         if within is not None:
-            self.filters.append(Area(within))
+            self._filters.append(Area(within))
         
         if isinstance(around, Around):
-            self.filters.append(around)
+            self._filters.append(around)
         elif around is not None:
-            self.filters.append(Around(around[1], around[0]))
+            self._filters.append(Around(around[1], around[0]))
         
         for key, value in tags.items():
-            self.filters.append(Key(key) == value)
-
-    @property
-    def _dependencies(self) -> list[Statement]:
-        deps: list[Statement] = []
-        for filt in self.filters:
-            deps.extend(filt._dependencies)
-        return deps
+            self._filters.append(Key(key) == value)
     
     def _compile_statement(self, vars: _VariableManager, out_var: str | None = None) -> str:
         comp_filter = lambda f: f._compile(vars)
-        res = self._type_specifier + "".join(map(comp_filter, self.filters))
+        res = self._type_specifier + "".join(map(comp_filter, self._filters))
         if out_var is not None:
             return res + f"->.{out_var};"
         return res + ";"
@@ -307,3 +300,48 @@ class RecurseUpRels(_Recurse):
     (taken from the Overpass QL documentation)
     """
     _symbol = "<<"
+
+
+class OverlappingAreas(Set):
+    """Corresponds to the ``is_in`` statement.
+    Represents the areas and closed ways that cover:
+    - the given coordinates (when specified) or
+    - one or more nodes from the input set (when no coordinates are specified).
+
+    (taken from the Overpass QL documentation)
+    """
+
+    def __init__(self,
+        lat: float | None = None,
+        lon: float | None = None,
+        input_set: Statement | None = None,
+        label: str | None = None
+    ) -> None:
+        super().__init__(label=label)
+        self.input_set = input_set
+        self.lat = lat
+        self.lon = lon
+    
+    def filter(self, *filters: Filter) -> Set:
+        return Areas(filters=[Intersect(self), *filters])
+    
+    @property
+    def _dependencies(self) -> list[Statement]:
+        return [] if self.input_set is None else [self.input_set]
+    
+    def _compile_statement(self, vars: _VariableManager, out_var: str | None = None) -> str:
+        if self.input_set is not None and (self.lat is not None or self.lon is not None):
+            raise InvalidStatementAttributes("Cannot use both coordinates and input set.")
+
+        res = "is_in"
+        if self.input_set is not None:
+            if vars.is_named(self.input_set):
+                res = f".{vars[self.input_set]} {res}"
+        elif self.lat is not None and self.lon is not None:
+            res = f"{res}({self.lat},{self.lon})"
+        else:
+            raise InvalidStatementAttributes("Input set or coordinates not defined.")
+
+        if out_var is not None:
+            return f"{res} ->.{out_var};"
+        return f"{res};"

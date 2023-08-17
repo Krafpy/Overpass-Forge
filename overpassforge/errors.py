@@ -40,6 +40,15 @@ class InvalidFilterAttributes(CompilationError):
     ) -> None:
         super().__init__(msg, statement)
 
+class InvalidStatementAttributes(CompilationError):
+    """Raised when a statement has invalid attributes."""
+
+    def __init__(self,
+        msg: str = "Invalid statement attributes.",
+        statement: Optional['Statement'] = None
+    ) -> None:
+        super().__init__(msg, statement)
+
 class InvalidQuerySettings(CompilationError):
     """Raised on invalid query settings."""
 

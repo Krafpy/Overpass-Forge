@@ -1,6 +1,6 @@
 from __future__ import annotations
 from .base import Statement
-from .statements import RawStatement, Union
+from .statements import RawStatement, Union, OverlappingAreas
 from ._variables import VariableManager
 from .base import Set
 from ._utils import partition
@@ -83,17 +83,17 @@ class DependencyRetriever(Visitor):
         else:
             self.deps[statement].ref_count += 1
 
-        # If we are compiling raw statement, all of its
-        # dependencies must be stored in variables
-        if statement.__class__ is RawStatement:
+        # If we are compiling raw statement or an overlapping area,
+        # all of its dependencies must be stored in variables
+        if statement.__class__ in (RawStatement, OverlappingAreas):
             for stmt in statement._dependencies:
                 if stmt not in self.deps:
                     self.deps[stmt] = Dependency(stmt, 0, True)
             return
         # Dependencies used by filters must always from variables
         if isinstance(statement, Set):
-            for f in statement.filters:
-                for stmt in f._dependencies:
+            for filt in statement._filters:
+                for stmt in filt._dependencies:
                     if stmt not in self.deps:
                         self.deps[stmt] = Dependency(stmt, 0, True)
 
@@ -121,7 +121,7 @@ class DependencySimplifier(Visitor):
         new_filters: list[Filter] = []
         is_single = lambda stmt: self.deps[stmt].ref_count == 1
 
-        for filt in statement.filters:
+        for filt in statement._filters:
             if not isinstance(filt, Intersect):
                 new_filters.append(filt)
                 continue
@@ -131,13 +131,13 @@ class DependencySimplifier(Visitor):
             for stmt in singles:
                 if isinstance(stmt, Set) and \
                     stmt.__class__ is statement.__class__:
-                    new_filters.extend(stmt.filters)
+                    new_filters.extend(stmt._filters)
                 else:
                     locked.append(stmt)
             if len(locked) > 0:
                 new_filters.append(Intersect(*locked))
         
-        statement.filters = new_filters
+        statement._filters = new_filters
         return statement
 
 

@@ -6,6 +6,7 @@
 
 - Added recursed up (relations) and down (relations) sets
   (`>`, `>>`, `<`, `<<`).
+- Added overlapping areas statement (*is_in*).
 
 ## 0.2.0 (2023-08-16)
 

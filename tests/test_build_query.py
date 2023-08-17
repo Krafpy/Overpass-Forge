@@ -1,5 +1,5 @@
 from overpassforge.builder import build, Settings
-from overpassforge.statements import RawStatement, Nodes, Difference, Union, Areas, Ways, Relations
+from overpassforge.statements import RawStatement, Nodes, Difference, Union, Areas, Ways, Relations, OverlappingAreas
 from overpassforge.filters import *
 import pytest
 
@@ -208,3 +208,18 @@ def test_basic_recurse_down():
         """.a out;\n""" \
         """(.a; .a >;);\n""" \
         """out;"""
+
+def test_overlapping_areas_set():
+    a = Nodes(name="Foo").overlapping_areas()
+    a = a.where(admin_level="2")
+    assert build(a) == \
+        """node["name"="Foo"]->.set_0;\n""" \
+        """.set_0 is_in ->.set_1;\n""" \
+        """area.set_1["admin_level"="2"];"""
+
+def test_overlapping_areas_latlon():
+    a = OverlappingAreas(48.856089,2.29789)
+    a = a.where(admin_level="2")
+    assert build(a) == \
+        """is_in(48.856089,2.29789) ->.set_0;\n""" \
+        """area.set_0["admin_level"="2"];"""

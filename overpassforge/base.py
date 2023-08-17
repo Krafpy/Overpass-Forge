@@ -132,7 +132,14 @@ class Set(Statement):
     def __init__(self, filters: Iterable[Filter] = [], label: str | None = None) -> None:
         super().__init__(label)
 
-        self.filters = list(filters)
+        self._filters = list(filters)
+    
+    @property
+    def _dependencies(self) -> list[Statement]:
+        deps: list[Statement] = []
+        for filt in self._filters:
+            deps.extend(filt._dependencies)
+        return deps
     
     def __sub__(self, other: Set) -> Difference:
         from .statements import Difference
@@ -260,3 +267,10 @@ class Set(Statement):
         """Returns the recursed up relations (``<<``) set."""
         from .statements import RecurseUpRels
         return RecurseUpRels(self)
+
+    def overlapping_areas(self) -> Set:
+        """Returns the set of areas that overlap at least one of the elements
+        of this set.
+        """
+        from .statements import OverlappingAreas
+        return OverlappingAreas(input_set=self)

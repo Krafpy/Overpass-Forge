@@ -60,7 +60,7 @@ List of currently implemented features, based on the [Overpass QL wiki](https://
   - [x] Item (implicit)
   - [x] Recurse up (<) and down (>)
   - [x] Recurse up relations (<<) and down (>>)
-  - [ ] Query for areas (is_in)
+  - [x] Query for areas (*is_in*)
   - [ ] Statements *timeline*, *local*, *convert*, *make*
   - [x] The Query Statement (*node, way, rel, area* **only**)
   - [ ] The Query Filter
