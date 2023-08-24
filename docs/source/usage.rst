@@ -67,7 +67,7 @@ For example:
     node(around.set_0:10000.0)["amenity"="cinema"];
 
 To add an arbitrary number of filters, use the ``filter`` method, which takes a list
-of ``Filter`` instances as arguments:
+of ``Filter`` instances or strings as arguments:
 
 .. code-block:: python
 
@@ -81,6 +81,13 @@ of ``Filter`` instances as arguments:
     node(area.set_0)["amenity"](changed:"2017-11-19T00:00:00Z");
 
 Available filters are listed in the :ref:`API Reference <api-reference-filters>`.
+In the case of area sets, it is straightfoward to obtain the elements within the
+areas via specific methods. The above query can also be written:
+
+.. code-block:: python
+
+    Areas(name="Paris").nodes(Key("amenity"), Changed(datetime(2017, 11, 19))
+
 
 To query any elements (nodes, ways and relations), use the base ``Elements`` class:
 
