@@ -64,6 +64,7 @@ List of currently implemented features, based on the [Overpass QL wiki](https://
   - [ ] Statements *timeline*, *local*, *convert*, *make*
   - [x] The Query Statement (*node, way, rel, area* **only**)
   - [ ] The Query Filter
+  - [ ] Map way/relation to area (*map_to_area*)
 - Filters
   - [x] By tag (*has-kv*)
   - [x] Bounding box
