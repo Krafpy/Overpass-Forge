@@ -150,6 +150,22 @@ class Areas(Elements):
 
     _type_specifier: str = "area"
 
+    def elements(self, *filters: Filter) -> Elements:
+        """Returns the elements within the areas."""
+        return Elements(filters=[Area(self), *filters])
+
+    def nodes(self, *filters: Filter) -> Nodes:
+        """Returns the nodes within the areas."""
+        return Nodes(filters=[Area(self), *filters])
+    
+    def ways(self, *filters: Filter) -> Ways:
+        """Returns the ways within the areas."""
+        return Ways(filters=[Area(self), *filters])
+    
+    def relations(self, *filters: Filter) -> Relations:
+        """Returns the relations within the areas."""
+        return Relations(filters=[Area(self), *filters])
+
 
 
 class Combination(Set):
