@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0 (2023-08-25)
+
+### Added
+
+- Direct methods for elements retrieval within areas.
+- Raw string filter expressions in set's `filter` method.
+
 ## 0.3.0 (2023-08-17)
 
 ### Added
