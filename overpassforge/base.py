@@ -152,13 +152,18 @@ class Set(Statement):
     def __mul__(self, other: Set) -> Set:
         return self.intersection(other)
     
-    def filter(self, *filters: Filter) -> Set:
+    def filter(self, *filters: Filter | str) -> Set:
         """Adds filters to the set.
 
         Args:
-            filters: A list of filters.
+            filters: A list of filters or strings representing raw
+                filters.
         """
-        return self.__class__(filters=[Intersect(self), *filters])
+        def make(filter_in: Filter | str):
+            if isinstance(filter_in, str):
+                return Filter(filter_in)
+            return filter_in
+        return self.__class__(filters=[Intersect(self), *map(make, filters)])
     
     def where(self, *keys: str | Regex, **tags: str | Regex) -> Set:
         """Adds filters "key", ~"key", "key"="value", or "key"~"value".

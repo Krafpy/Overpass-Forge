@@ -223,3 +223,9 @@ def test_overlapping_areas_latlon():
     assert build(a) == \
         """is_in(48.856089,2.29789) ->.set_0;\n""" \
         """area.set_0["admin_level"="2"];"""
+
+def test_filter_string():
+    a = Nodes().filter("(if: t[\"amenity\"] == \"restaurant\")",
+                       Key("opening_hours"))
+    assert build(a) == \
+        "node(if: t[\"amenity\"] == \"restaurant\")[\"opening_hours\"];"
