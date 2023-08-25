@@ -176,7 +176,7 @@ class Combination(Set):
     def __init__(self, label: str | None = None) -> None:
         super().__init__(label=label)
 
-    def filter(self, *filters: Filter) -> Set:
+    def filter(self, *filters: Filter) -> Elements:
         return Elements(filters=[Intersect(self), *filters])
 
 
@@ -338,7 +338,7 @@ class OverlappingAreas(Areas):
         self.lat = lat
         self.lon = lon
     
-    def filter(self, *filters: Filter) -> Set:
+    def filter(self, *filters: Filter) -> Areas:
         return Areas(filters=[Intersect(self), *filters])
     
     @property

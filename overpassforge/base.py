@@ -19,7 +19,16 @@ from datetime import datetime
 
 if TYPE_CHECKING:
     from ._visitors import Visitor as _Visitor
-    from .statements import Difference, Union, Areas
+    from .statements import (
+        Difference,
+        Union,
+        Areas,
+        Elements,
+        RecurseDown,
+        RecurseDownRels,
+        RecurseUp,
+        RecurseUpRels
+    )
 
 
 OUT_OPTIONS = ("ids", "skel", "body", "tags", "meta", "noids", "geom", "bb", "center", "asc", "qt", "count")
@@ -253,27 +262,27 @@ class Set(Statement):
         """
         return self.filter(Around(radius, other, lats, lons))
 
-    def recursed_down(self) -> Set:
+    def recursed_down(self) -> 'RecurseDown':
         """Returns the recursed down (``>``) set."""
         from .statements import RecurseDown
         return RecurseDown(self)
 
-    def recursed_down_rels(self) -> Set:
+    def recursed_down_rels(self) -> 'RecurseDownRels':
         """Returns the recursed down relations (``>>``) set."""
         from .statements import RecurseDownRels
         return RecurseDownRels(self)
     
-    def recursed_up(self) -> Set:
+    def recursed_up(self) -> 'RecurseUp':
         """Returns the recursed down (``<``) set."""
         from .statements import RecurseUp
         return RecurseUp(self)
     
-    def recursed_up_rels(self) -> Set:
+    def recursed_up_rels(self) -> 'RecurseUpRels':
         """Returns the recursed up relations (``<<``) set."""
         from .statements import RecurseUpRels
         return RecurseUpRels(self)
 
-    def overlapping_areas(self) -> Set:
+    def overlapping_areas(self) -> 'Areas':
         """Returns the set of areas that overlap at least one of the elements
         of this set.
         """
