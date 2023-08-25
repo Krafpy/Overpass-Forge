@@ -6,6 +6,11 @@
 
 - Enforced return type on query methods.
 
+### Fixed
+
+- Overloaded `filter` methods on derived classes of `Set`
+  accept string arguments.
+
 ## 0.4.1 (2023-08-25)
 
 ### Changed

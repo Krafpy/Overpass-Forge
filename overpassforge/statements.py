@@ -176,8 +176,12 @@ class Combination(Set):
     def __init__(self, label: str | None = None) -> None:
         super().__init__(label=label)
 
-    def filter(self, *filters: Filter) -> Elements:
-        return Elements(filters=[Intersect(self), *filters])
+    def filter(self, *filters: Filter | str) -> Elements:
+        def make(filter_in: Filter | str):
+            if isinstance(filter_in, str):
+                return Filter(filter_in)
+            return filter_in
+        return Elements(filters=[Intersect(self), *map(make, filters)])
 
 
 class Union(Combination):
@@ -338,8 +342,12 @@ class OverlappingAreas(Areas):
         self.lat = lat
         self.lon = lon
     
-    def filter(self, *filters: Filter) -> Areas:
-        return Areas(filters=[Intersect(self), *filters])
+    def filter(self, *filters: Filter | str) -> Areas:
+        def make(filter_in: Filter | str):
+            if isinstance(filter_in, str):
+                return Filter(filter_in)
+            return filter_in
+        return Areas(filters=[Intersect(self), *map(make, filters)])
     
     @property
     def _dependencies(self) -> list[Statement]:
