@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.2 (2023-08-25)
+
+### Changed
+
+- Enforced return type on query methods.
+
 ## 0.4.1 (2023-08-25)
 
 ### Changed
