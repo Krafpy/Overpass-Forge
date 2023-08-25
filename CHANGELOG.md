@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1 (2023-08-25)
+
+### Changed
+
+- `OverlappingAreas` inherit from `Areas`.
+
 ## 0.4.0 (2023-08-25)
 
 ### Added
