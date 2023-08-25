@@ -318,7 +318,7 @@ class RecurseUpRels(_Recurse):
     _symbol = "<<"
 
 
-class OverlappingAreas(Set):
+class OverlappingAreas(Areas):
     """Corresponds to the ``is_in`` statement.
     Represents the areas and closed ways that cover:
     - the given coordinates (when specified) or
