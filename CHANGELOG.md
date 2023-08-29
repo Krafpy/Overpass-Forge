@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- Moved `out` from `Statement` to `Set` only.
+
 ## 0.4.2 (2023-08-25)
 
 ### Changed

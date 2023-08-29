@@ -50,7 +50,7 @@ class RawStatement(Statement):
         if "{}" in raw:
             raise ValueError("All inserted dependencies must be named.")
     
-    def _compile_statement(self, vars: _VariableManager, out_var: str | None = None) -> str:
+    def _compile(self, vars: _VariableManager, out_var: str | None = None) -> str:
         """Compiles the statement into its Overpass query string, without eventual
         outputs.
         """
@@ -112,7 +112,7 @@ class Elements(Set):
         for key, value in tags.items():
             self._filters.append(Key(key) == value)
     
-    def _compile_statement(self, vars: _VariableManager, out_var: str | None = None) -> str:
+    def _compile(self, vars: _VariableManager, out_var: str | None = None) -> str:
         comp_filter = lambda f: f._compile(vars)
         res = self._type_specifier + "".join(map(comp_filter, self._filters))
         if out_var is not None:
@@ -209,7 +209,7 @@ class Union(Combination):
     def _dependencies(self) -> list[Statement]:
         return [*self.statements]
     
-    def _compile_statement(self, vars: _VariableManager, out_var: str | None = None) -> str:
+    def _compile(self, vars: _VariableManager, out_var: str | None = None) -> str:
         substmts = []
         for stmt in self.statements:
             substmts.append(vars.get_or_compile(stmt, ".{};"))
@@ -245,7 +245,7 @@ class Difference(Combination):
     def _dependencies(self) -> list[Statement]:
         return [self.a, self.b]
     
-    def _compile_statement(self, vars: _VariableManager, out_var: str | None = None) -> str:
+    def _compile(self, vars: _VariableManager, out_var: str | None = None) -> str:
         a = vars.get_or_compile(self.a, ".{};")
         b = vars.get_or_compile(self.b, ".{};")
         if out_var is None:
@@ -266,7 +266,7 @@ class _Recurse(Set):
     def _dependencies(self) -> list[Statement]:
         return [self.input_set]
     
-    def _compile_statement(self, vars: _VariableManager, out_var: str | None = None) -> str:
+    def _compile(self, vars: _VariableManager, out_var: str | None = None) -> str:
         match vars.is_named(self.input_set), out_var is not None:
             case False, False:
                 return f"{self._symbol};"
@@ -353,7 +353,7 @@ class OverlappingAreas(Areas):
     def _dependencies(self) -> list[Statement]:
         return [] if self.input_set is None else [self.input_set]
     
-    def _compile_statement(self, vars: _VariableManager, out_var: str | None = None) -> str:
+    def _compile(self, vars: _VariableManager, out_var: str | None = None) -> str:
         if self.input_set is not None and (self.lat is not None or self.lon is not None):
             raise InvalidStatementAttributes("Cannot use both coordinates and input set.")
 

@@ -23,7 +23,6 @@ if TYPE_CHECKING:
         Difference,
         Union,
         Areas,
-        Elements,
         RecurseDown,
         RecurseDownRels,
         RecurseUp,
@@ -45,7 +44,6 @@ class Statement:
             label: A label for this statement which may be used
                 as variable name for the result of this statement at compilation.
         """
-        self.out_options: list[set[str]] = []
         self.label = label
     
     def _accept_pre(self, visitor: _Visitor):
@@ -80,12 +78,39 @@ class Statement:
     def __hash__(self) -> int:
         return id(self)
     
-    def out(self, *options: str | tuple[float, float, float, float]):
-        """
-        Indicate that the result of this statement must be outputed.
+    def _compile(self, vars: _VariableManager, out_var: str | None = None) -> str:
+        """Compiles the statement into its Overpass query string.
 
         Args:
-            options: None or any combination of "ids", "skel", "body", "tags",
+            vars: The variable manager at compile time.
+            out_var: The name of the output variable where to store the result
+                of this statement.
+        
+        Returns:
+            The compiled statement string.
+        """
+        raise NotImplementedError("Must be implemented in subclass.")
+    
+    def __repr__(self) -> str:
+        info = self.label if self.label else id(self)
+        return f"<{self.__class__.__name__} \'{info}\'>"
+
+
+class Set(Statement):
+    """Represents a set, i.e. a statement that always returns a set of elements."""
+
+    def __init__(self, filters: Iterable[Filter] = [], label: str | None = None) -> None:
+        super().__init__(label)
+
+        self._filters = list(filters)
+        self.out_options: list[set[str]] = []
+    
+    def out(self, *options: str | tuple[float, float, float, float]):
+        """
+        Indicate that this set must be outputed.
+
+        Args:
+            options: empty or any combination of "ids", "skel", "body", "tags",
                 "meta", "noids", "geom", "bb", "center", "asc", "qt", "count" or
                 a bounding box (south,west,north,east).
         
@@ -106,42 +131,17 @@ class Statement:
         
         self.out_options.append(valid_options)
     
-    def _compile(self, vars: _VariableManager, out_var: str | None = None) -> str:
-        """Compiles the statement into its Overpass query string, with its eventual outputs.
-
-        Args:
-            vars: The variable manager at compile time.
-            out_var: The name of the output variable where to store the result
-                of this statement.
-        
-        Returns:
-            The compiled statement string.
-        """
-        compiled = self._compile_statement(vars, out_var)
-        if len(self.out_options) == 0:
-            return compiled
-        
+    def _output(self, vars: _VariableManager) -> str:
         outs = []
         var = vars.get(self)
+        base = f".{var} out" if var is not None else "out"
         for opts in self.out_options:
-            out = f".{var} out" if var is not None else "out"
-            out += (" " + " ".join(sorted(opts))) if len(opts) > 0 else ""
+            out = base
+            if len(opts) > 0:
+                out += " " + " ".join(sorted(opts))
             out += ";"
             outs.append(out)
-        return compiled + "\n" + "\n".join(outs)
-    
-    def __repr__(self) -> str:
-        info = self.label if self.label else id(self)
-        return f"<{self.__class__.__name__} \'{info}\'>"
-
-
-class Set(Statement):
-    """Represents a set, i.e. a statement that always returns a set of elements."""
-
-    def __init__(self, filters: Iterable[Filter] = [], label: str | None = None) -> None:
-        super().__init__(label)
-
-        self._filters = list(filters)
+        return "\n".join(outs)
     
     @property
     def _dependencies(self) -> list[Statement]:

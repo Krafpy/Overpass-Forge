@@ -164,6 +164,9 @@ class Compiler(Visitor):
             name_to = self.variables.add_statement(statement)
             compiled = statement._compile(self.variables, name_to)
             self.sequence.append(compiled)
+        
+        if isinstance(statement, Set) and len(statement.out_options) > 0:
+            self.sequence.append(statement._output(self.variables))
 
 
 def traverse_statement(statement: Statement, visitor: Visitor):
