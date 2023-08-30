@@ -182,7 +182,7 @@ def traverse_statement(statement: Statement, visitor: Visitor):
     def traverse(statement: Statement):
         statement._accept_pre(visitor)
         if statement in visited:
-            return statement
+            return
         visited.add(statement)
         for dep in statement._dependencies:
             traverse(dep)
