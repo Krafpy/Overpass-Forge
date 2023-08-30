@@ -50,7 +50,7 @@ class RawStatement(Statement):
         if "{}" in raw:
             raise ValueError("All inserted dependencies must be named.")
     
-    def _compile(self, vars: _VariableManager, out_var: str | None = None) -> str:
+    def _compile(self, vars: _VariableManager) -> str:
         """Compiles the statement into its Overpass query string, without eventual
         outputs.
         """
@@ -60,12 +60,16 @@ class RawStatement(Statement):
                 raise UnexpectedCompilationError("All inserted sets must use variables.")
             var_names[name] = vars[stmt]
         compiled = self._raw
-        if "{:out_var}" in self._raw:
-            compiled = compiled.replace("{:out_var}", out_var or "_")
-        elif out_var is not None:
+        if self._hash_output:
+            compiled = compiled.replace("{:out_var}", vars.get(self) or "_")
+        elif vars.is_named(self):
             raise UnexpectedCompilationError("No output variable specified.")
         return compiled.format(**var_names)
     
+    @property
+    def _hash_output(self):
+        return "{:out_var}" in self._raw
+
     @property
     def _dependencies(self) -> list[Statement]:
         """List of statements on which this statement depends on."""
@@ -112,9 +116,10 @@ class Elements(Set):
         for key, value in tags.items():
             self._filters.append(Key(key) == value)
     
-    def _compile(self, vars: _VariableManager, out_var: str | None = None) -> str:
+    def _compile(self, vars: _VariableManager) -> str:
         comp_filter = lambda f: f._compile(vars)
         res = self._type_specifier + "".join(map(comp_filter, self._filters))
+        out_var = vars.get(self)
         if out_var is not None:
             return res + f"->.{out_var};"
         return res + ";"
@@ -205,10 +210,11 @@ class Union(Combination):
     def _dependencies(self) -> list[Statement]:
         return [*self.statements]
     
-    def _compile(self, vars: _VariableManager, out_var: str | None = None) -> str:
+    def _compile(self, vars: _VariableManager) -> str:
         substmts = []
         for stmt in self.statements:
             substmts.append(vars.get_or_compile(stmt, ".{};"))
+        out_var = vars.get(self)
         if out_var is None:
             return f"({' '.join(substmts)});"
         return f"({' '.join(substmts)})->.{out_var};"
@@ -241,9 +247,10 @@ class Difference(Combination):
     def _dependencies(self) -> list[Statement]:
         return [self.a, self.b]
     
-    def _compile(self, vars: _VariableManager, out_var: str | None = None) -> str:
+    def _compile(self, vars: _VariableManager) -> str:
         a = vars.get_or_compile(self.a, ".{};")
         b = vars.get_or_compile(self.b, ".{};")
+        out_var = vars.get(self)
         if out_var is None:
             return f"({a} - {b});"
         return f"({a} - {b})->.{out_var};"
@@ -262,7 +269,8 @@ class _Recurse(Set):
     def _dependencies(self) -> list[Statement]:
         return [self.input_set]
     
-    def _compile(self, vars: _VariableManager, out_var: str | None = None) -> str:
+    def _compile(self, vars: _VariableManager) -> str:
+        out_var = vars.get(self)
         match vars.is_named(self.input_set), out_var is not None:
             case False, False:
                 return f"{self._symbol};"
@@ -345,7 +353,7 @@ class OverlappingAreas(Areas):
     def _dependencies(self) -> list[Statement]:
         return [] if self.input_set is None else [self.input_set]
     
-    def _compile(self, vars: _VariableManager, out_var: str | None = None) -> str:
+    def _compile(self, vars: _VariableManager) -> str:
         if self.input_set is not None and (self.lat is not None or self.lon is not None):
             raise InvalidStatementAttributes("Cannot use both coordinates and input set.")
 
@@ -358,6 +366,7 @@ class OverlappingAreas(Areas):
         else:
             raise InvalidStatementAttributes("Input set or coordinates not defined.")
 
+        out_var = vars.get(self)
         if out_var is not None:
             return f"{res} ->.{out_var};"
         return f"{res};"

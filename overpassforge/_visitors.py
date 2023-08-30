@@ -164,8 +164,8 @@ class Compiler(Visitor):
         if statement == self.root:
             self.sequence.append(statement._compile(self.variables))
         elif not self.deps[statement].can_inline:
-            name_to = self.variables.add_statement(statement)
-            compiled = statement._compile(self.variables, name_to)
+            self.variables.add_statement(statement)
+            compiled = statement._compile(self.variables)
             self.sequence.append(compiled)
         
         if isinstance(statement, Set) and len(statement.out_options) > 0:

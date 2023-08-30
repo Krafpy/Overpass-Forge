@@ -14,12 +14,20 @@ def test_covering_area_set(vars_with_node: tuple[Nodes, VariableManager], no_var
     a, vars = vars_with_node
     assert OverlappingAreas(input_set=a)._compile(no_vars) == "is_in;"
     assert OverlappingAreas(input_set=a)._compile(vars) == ".a is_in;"
-    assert OverlappingAreas(input_set=a)._compile(no_vars, "b") == "is_in ->.b;"
-    assert OverlappingAreas(input_set=a)._compile(vars, "b") == ".a is_in ->.b;"
+
+    b = OverlappingAreas(input_set=a, label="b")
+    vars = no_vars
+    vars.add_statement(b)
+    assert b._compile(vars) == "is_in ->.b;"
+    vars.add_statement(a)
+    assert b._compile(vars) == ".a is_in ->.b;"
 
 def test_covering_area_latlon(no_vars):
     assert OverlappingAreas(lat=42.0, lon=43.0)._compile(no_vars) == "is_in(42.0,43.0);"
-    assert OverlappingAreas(lat=42.0, lon=43.0)._compile(no_vars, "b") == "is_in(42.0,43.0) ->.b;"
+    b = OverlappingAreas(lat=42.0, lon=43.0, label="b")
+    vars = no_vars
+    vars.add_statement(b)
+    assert b._compile(vars) == "is_in(42.0,43.0) ->.b;"
 
 def test_covering_area_invalid(no_vars):
     with pytest.raises(InvalidStatementAttributes):

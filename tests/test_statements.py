@@ -37,7 +37,7 @@ def test_difference_statement_variable():
     vars = VariableManager()
     u = Difference(Nodes(name="Foo"), Ways(name="Foo"))
     name_u = vars.add_statement(u)
-    assert u._compile(vars, name_u) == \
+    assert u._compile(vars) == \
         f"""(node["name"="Foo"]; - way["name"="Foo"];)->.{name_u};"""
 
 def test_union_statement(no_vars):
@@ -50,7 +50,7 @@ def test_union_statement_variable():
     vars = VariableManager()
     u = Union(Nodes(name="Foo"), Ways(name="Foo"))
     name_u = vars.add_statement(u)
-    assert u._compile(vars, name_u) == \
+    assert u._compile(vars) == \
         f"""(node["name"="Foo"]; way["name"="Foo"];)->.{name_u};"""
 
 def test_invalid_raw_statement_placeholder():
@@ -62,8 +62,11 @@ def test_raw_statement_no_vars(no_vars):
     with pytest.raises(UnexpectedCompilationError):
         RawStatement("node.{missing_var};", missing_var=a)._compile(no_vars)
     
+    vars = VariableManager()
+    stmt = RawStatement("node[foo];")
+    vars.add_statement(stmt)
     with pytest.raises(UnexpectedCompilationError):
-        print(RawStatement("node[foo];")._compile(no_vars, 'output_var'))
+        print(stmt._compile(vars))
 
 
 @pytest.fixture

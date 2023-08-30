@@ -42,19 +42,20 @@ class Statement:
         """
         Args:
             label: A label for this statement which may be used
-                as variable name for the result of this statement at compilation.
+                as variable name for the result of this statement at
+                compilation.
         """
         self.label = label
     
     def _accept_pre(self, visitor: _Visitor):
-        """Calls the appropriate visitor method when this statement is visited before
-        visiting it's dependencies.
+        """Calls the appropriate visitor method when this statement is
+        visited before visiting it's dependencies.
         """
         visitor.visit_statement_pre(self)
 
     def _accept_post(self, visitor: _Visitor):
-        """Calls the appropriate visitor method after having visited this statement's
-        dependencies.
+        """Calls the appropriate visitor method after having visited
+        this statement's dependencies.
         """
         visitor.visit_statement_post(self)
     
@@ -67,7 +68,7 @@ class Statement:
     def __hash__(self) -> int:
         return id(self)
     
-    def _compile(self, vars: _VariableManager, out_var: str | None = None) -> str:
+    def _compile(self, vars: _VariableManager) -> str:
         """Compiles the statement into its Overpass query string.
 
         Args:
