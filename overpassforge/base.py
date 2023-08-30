@@ -57,17 +57,6 @@ class Statement:
         dependencies.
         """
         visitor.visit_statement_post(self)
-
-    def _compile_statement(self, vars: _VariableManager, out_var: str | None = None) -> str:
-        """Compiles the statement into its Overpass query string, without additional
-        output statements.
-
-        Args:
-            vars: The variable manager at compile time
-            out_var: The name of the output variable where to
-                store the result of this statement
-        """
-        raise NotImplementedError("Must be implemented in subclass.")
     
     @property
     def _dependencies(self) -> list[Statement]:
