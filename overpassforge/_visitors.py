@@ -67,7 +67,10 @@ class Dependency:
     
     @property
     def can_inline(self):
-        return not self.no_inline and self.ref_count <= 1 and len(self.statement.out_options) == 0
+        can = not self.no_inline and self.ref_count <= 1
+        if isinstance(self.statement, Set):
+            can = can and len(self.statement.out_options) == 0
+        return can
 
 class DependencyRetriever(Visitor):
     """
