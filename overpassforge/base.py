@@ -157,11 +157,7 @@ class Set(Statement):
             filters: A list of filters or strings representing raw
                 filters.
         """
-        def make(filter_in: Filter | str):
-            if isinstance(filter_in, str):
-                return Filter(filter_in)
-            return filter_in
-        return self.__class__(filters=[Intersect(self), *map(make, filters)])
+        return self.__class__(filters=[Intersect(self), *map(Filter._make, filters)])
     
     def where(self, *keys: str | Regex, **tags: str | Regex) -> Set:
         """Adds filters "key", ~"key", "key"="value", or "key"~"value".

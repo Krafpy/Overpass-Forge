@@ -27,6 +27,10 @@ class Filter:
     def _dependencies(self) -> list[Statement]:
         return []
     
+    @staticmethod
+    def _make(filter: Filter | str):
+        return Filter(filter) if isinstance(filter, str) else filter
+    
     def __repr__(self) -> str:
         return f"<Filter \"{self._raw}\">"
 
