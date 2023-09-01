@@ -270,16 +270,17 @@ class _Recurse(Set):
         return [self.input_set]
     
     def _compile(self, vars: _VariableManager) -> str:
+        in_var = vars.get(self.input_set)
         out_var = vars.get(self)
         match vars.is_named(self.input_set), out_var is not None:
             case False, False:
                 return f"{self._symbol};"
             case True, False:
-                return f".{vars[self.input_set]} {self._symbol};"
+                return f".{in_var} {self._symbol};"
             case False, True:
                 return f"{self._symbol} ->.{out_var};"
             case _:
-                return f".{vars[self.input_set]} {self._symbol} ->.{out_var};"
+                return f".{in_var} {self._symbol} ->.{out_var};"
 
 class RecurseDown(_Recurse):
     """Recurse down elements (``>``).
@@ -370,3 +371,31 @@ class OverlappingAreas(Areas):
         if out_var is not None:
             return f"{res} ->.{out_var};"
         return f"{res};"
+
+
+class AsAreas(Areas):
+    """Represents the ``map_to_area`` statement."""
+
+    def __init__(self, input_set: Statement, label: str | None = None):
+        super().__init__(label=label)
+        self.input_set = input_set
+    
+    def filter(self, *filters: Filter | str) -> Areas:
+        return Areas(filters=[Intersect(self), *map(Filter._make, filters)])
+
+    @property
+    def _dependencies(self) -> list[Statement]:
+        return [self.input_set]
+    
+    def _compile(self, vars: _VariableManager) -> str:
+        in_var = vars.get(self.input_set)
+        out_var = vars.get(self)
+        match in_var is not None, out_var is not None:
+            case False, False:
+                return "map_to_area;"
+            case True, False:
+                return f".{in_var} map_to_area;"
+            case False, True:
+                return f"map_to_area ->.{out_var};"
+            case _:
+                return f".{in_var} map_to_area ->.{out_var};"

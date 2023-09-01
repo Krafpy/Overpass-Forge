@@ -1,6 +1,6 @@
 from __future__ import annotations
 from .base import Statement
-from .statements import RawStatement, Union, OverlappingAreas
+from .statements import RawStatement, Union, OverlappingAreas, AsAreas
 from ._variables import VariableManager
 from .base import Set
 from ._utils import partition
@@ -86,9 +86,9 @@ class DependencyRetriever(Visitor):
         else:
             self.deps[statement].ref_count += 1
 
-        # If we are compiling raw statement or an overlapping area,
-        # all of its dependencies must be stored in variables
-        if statement.__class__ in (RawStatement, OverlappingAreas):
+        # If we are compiling raw statement or an overlapping area or a
+        # map to area, all of its dependencies must be stored in variables
+        if statement.__class__ in (RawStatement, OverlappingAreas, AsAreas):
             for stmt in statement._dependencies:
                 if stmt not in self.deps:
                     self.deps[stmt] = Dependency(stmt, 0, True)

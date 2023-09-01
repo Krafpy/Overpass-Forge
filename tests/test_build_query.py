@@ -1,5 +1,5 @@
 from overpassforge.builder import build, Settings
-from overpassforge.statements import RawStatement, Nodes, Difference, Union, Areas, Ways, Relations, OverlappingAreas
+from overpassforge.statements import RawStatement, Nodes, Difference, Union, Areas, Ways, Relations, OverlappingAreas, AsAreas
 from overpassforge.filters import *
 import pytest
 
@@ -229,3 +229,27 @@ def test_filter_string():
                        Key("opening_hours"))
     assert build(a) == \
         "node(if: t[\"amenity\"] == \"restaurant\")[\"opening_hours\"];"
+
+def test_as_areas_simple():
+    a = AsAreas(Ways(name="Foo"))
+    a.out()
+    assert build(a) == \
+        """way["name"="Foo"]->.set_0;\n""" \
+        """.set_0 map_to_area;\n""" \
+        """out;"""
+
+def test_as_areas_in_filter():
+    r = Relations(name="Foo")
+    n = Nodes(within=AsAreas(r))
+    assert build(n) == \
+        """rel["name"="Foo"]->.set_0;\n""" \
+        """.set_0 map_to_area ->.set_1;\n""" \
+        """node(area.set_1);"""
+
+def test_as_areas_with_filter():
+    r = Relations(name="Foo")
+    a = AsAreas(r).where(bar="Baz")
+    assert build(a) == \
+        """rel["name"="Foo"]->.set_0;\n""" \
+        """.set_0 map_to_area ->.set_1;\n""" \
+        """area.set_1["bar"="Baz"];"""
