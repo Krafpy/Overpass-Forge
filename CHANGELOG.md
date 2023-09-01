@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 0.4.3
+
+- Added `map_to_area` wrapper with `AsAreas` object.
+
 ### Changed
 
 - Moved `out` from `Statement` to `Set` only.
