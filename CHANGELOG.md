@@ -1,10 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.4.3 (2023-09-01)
 
-### 0.4.3
+### Added
 
-- Added `map_to_area` wrapper with `AsAreas` object.
+- `map_to_area` wrapper with `AsAreas` object.
 
 ### Changed
 
