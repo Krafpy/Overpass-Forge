@@ -6,7 +6,7 @@
 ![CI tests](https://github.com/Krafpy/Overpass-Forge/actions/workflows/ci.yml/badge.svg)
 
 An object-oriented model to build Overpass queries in Python. Primarly intended
-to generate complex queries in Python.
+to generate complex queries in Python. Checkout the [documentation](https://overpassforge.readthedocs.io/en/latest/).
 
 ## Install
 
@@ -64,7 +64,7 @@ List of currently implemented features, based on the [Overpass QL wiki](https://
   - [ ] Statements *timeline*, *local*, *convert*, *make*
   - [x] The Query Statement (*node, way, rel, area* **only**)
   - [ ] The Query Filter
-  - [ ] Map way/relation to area (*map_to_area*)
+  - [x] Map way/relation to area (*map_to_area*)
 - Filters
   - [x] By tag (*has-kv*)
   - [x] Bounding box
